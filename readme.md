@@ -152,7 +152,7 @@ CONTROL
             0x04    JNF        cond addr →                 Jump if cond == 0
             0x05    CALL       addr →                      Push return frame, jump to addr
             0x06    RET        val →                       Pop frame, push val, resume caller
-            0x07    YLD        priority →                  Yield to colony scheduler with hint
+            0x07    SWAP       a b → b a                   Swap top two stack items [was YLD — see §5.3]
 
 INT ARITHMETIC
             0x08    IADD       a b → (a+b)                 Wrapping add
@@ -702,6 +702,10 @@ kyzu/
 | 11 | Contract schema versioning: add u16 schema_version to node descriptor reserved bytes now, define DSL later? | Open | Cheap to add now; expensive to retrofit |
 | 12 | Colony-level soft limits (message rate, gene offer rate): router genome policy or spec-level convention? | Open | Clarification: these are router genome policy, NOT Layer 0 invariants. Router is evolvable so "invariant" framing is wrong |
 | 13 | SOMA_MAX_* constants: should they be seed-compiler parameters (different values per entity class) or truly global? | Open | Affects Step 2 — decide before writing codon.rs |
+
+Before touching the keyboard, two things: the spec needs four opcode corrections that only become apparent when you try to write actual bytecode, and then we start with Step 1.
+The problem: a stack machine without DUP, OVER, SWAP, and POP can't express recursive fibonacci (or almost anything useful). These four ops have no expression in terms of other ops — you can't implement DUP without DUP. By contrast, IABS is DUP; PUSH 0; LT; JIF; INEG (expressible), COPY/FILL (memcpy/memset) are Layer 1 cells, and YLD is a duplicate of SCHED at 0x3E. Swapping those four out is the right call before a single line of Rust exists.
+Fix codon table: swap YLD→SWAP, IABS→POP, COPY→DUP, FILL→OVER
 
 ---
 
