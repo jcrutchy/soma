@@ -1,5 +1,5 @@
 # SOMA — Self-Organizing Machine Architecture
-## Practical Implementation Specification · v0.3
+## Practical Implementation Specification · v0.4
 
 ---
 
@@ -70,6 +70,24 @@ This is not a superintelligence. It is a self-optimizing system performing the R
 Layer 0 is the only code written in Rust that never changes. It interprets Layer 1. Layer 1 interprets Layer 2. Layer 1 can mutate Layer 2 and can mutate itself. Any Layer 1 mutation that makes Layer 1 uninterpretable by Layer 0 is detected at the next evaluation step and rolled back. Layer 0 cannot be mutated by anything.
 
 The second-order consequence: because the mutation engine lives in Layer 1, the entity can evolve *how it evolves* — smarter mutation strategies, better fitness heuristics, more efficient IR search. The learning compounds.
+
+### 3.1 Layer 0 Structural Invariants
+
+Layer 0 enforces a small set of hard limits that are purely structural — they require no semantic understanding of what the program means, only knowledge of its shape. These are checked continuously by the evaluation loop and cannot be overridden by Layer 1 or Layer 2.
+
+```
+SOMA_MAX_CALL_DEPTH     = 256        ← call stack frames before trap
+SOMA_MAX_NODE_COUNT     = 1,048,576  ← genome nodes (2^20); prevents explosive growth
+SOMA_MAX_EDGE_FANOUT    = 256        ← outgoing edges per node; prevents combinatorial explosion
+SOMA_MAX_GLOG_RATE      = 65,536     ← GLOG writes per second; prevents log flooding
+SOMA_MAX_STACK_DEPTH    = 1,024      ← evaluation stack slots (existing)
+```
+
+When any limit is breached, Layer 0 traps — it does not crash, does not corrupt state, does not invoke the healing engine. It halts the offending cell, records a structural violation entry in GLOG (violation_type field, separate from the mutation record), and gives control back to the Layer 1 scheduler which decides how to respond.
+
+These limits are declared as Rust constants in `codon.rs`. They are not genome-declared and cannot be changed at runtime. An entity that needs higher limits must be spawned from a different seed compiled against different constants — a deliberate friction that makes architectural decisions visible.
+
+**Why these five specifically:** call depth and stack depth bound runaway recursion; node count bounds genome cancer (unbounded GNEW without GDEL); edge fanout bounds the graph from becoming a dense tangle that defeats the mutation engine's topology assumptions; GLOG rate bounds a pathological entity from saturating disk I/O and masking its own evolutionary signal with noise.
 
 ---
 
@@ -305,13 +323,39 @@ Purpose: emergent persistence. The entity may use this region for anything — i
 
 The Ghost Zone persists across sessions via the normal GFLUSH mechanism. It is the entity's equivalent of working memory. When first spawned, it is zeroed. What it becomes over the entity's lifetime is entirely the product of evolution.
 
+### 7.1 Layout
+
 ```
-Ghost Zone layout (fixed address, part of genome mmap):
-  Size:      8192 bytes (exactly 2 pages)
-  Alignment: 4096-byte page boundary
-  Access:    LD / ST / LDB / STB via GADDR on a reserved ghost_base node
-  Mutation:  never touched by the mutation engine
-  GFLUSH:    included in serialization (contents preserved)
+Ghost Zone (8192 bytes total, page-aligned):
+
+  Offset   Size   Field
+  ─────────────────────────────────────────────────────────
+  0x0000   8 B    magic: 0x47484F5354 ("GHOST\0\0\0") — integrity sentinel
+  0x0008   4 B    schema_version (u32) — entity-defined; 0 at birth
+  0x000C   4 B    write_count (u32) — incremented on every Ghost Zone write
+  0x0010   8 B    last_write_cycle (u64) — CPU cycle count of last write
+  0x0018   8 B    content_hash (u64) — SipHash of bytes 0x0040–0x1FFF; 0 = unchecked
+  0x0020   8 B    reserved[0] — for future header use; set to 0 at birth
+  0x0028   8 B    reserved[1]
+  0x0030   8 B    reserved[2]
+  0x0038   8 B    reserved[3]
+  0x0040   8128 B emergent region — fully opaque to Layer 0 and spec
+  ─────────────────────────────────────────────────────────
+  Total:   8192 B (0x2000)
+```
+
+The 64-byte header gives Layer 0 a stable foothold for debugging and analytics: `write_count` and `last_write_cycle` let you observe whether the Ghost Zone is being used at all without interpreting its content. `content_hash` is written by the entity itself (via `GLOG`-adjacent convention, not enforced) to allow integrity checks. `schema_version` is entirely entity-defined — it is 0 at birth and may be incremented when the entity's evolved interpretation of the emergent region changes enough to be considered a new format.
+
+The 8128-byte emergent region has no structure imposed by the spec. Layer 0 will never define additional fields there. Whatever evolves there is the entity's private business.
+
+```
+Ghost Zone access:
+  Base address:  resolved via GADDR on the reserved ghost_base node (node index 0 by convention)
+  Read/write:    LD / ST / LDB / STB at (ghost_base + offset)
+  Mutation:      emergent region never touched by the mutation engine
+                 header fields are read-only to the mutation engine (write_count may be updated
+                 by Layer 0 internally on header writes, but mutation engine skips this region)
+  GFLUSH:        full 8192 bytes included in serialization
 ```
 
 ---
@@ -370,21 +414,72 @@ fitness {
 
 The mutation engine tracks a rolling fitness window (last N invocations) per node. Nodes whose fitness has not improved in M mutation attempts are marked for aggressive mutation (edge rewire rather than codon swap). Nodes that consistently improve fitness are pinned (flag bit 1) to protect them from mutation.
 
-### 9.4 GLOG as Scientific Instrument
+### 9.4 Degradation Tracking
 
-Every committed mutation appends a structured record to the GLOG:
+The fitness window per node (rolling last-N invocations) gives short-term visibility. For long-term degradation detection, the entity genome declares a **regression budget**:
+
 ```
-[timestamp: u64]    ← CPU cycle count at commit
-[node_idx: u32]     ← which node was mutated
-[mutation_type: u8] ← 0=codon_swap, 1=edge_rewire, 2=insert, 3=delete
-[old_opcode: u8]    ← before (for codon_swap)
-[new_opcode: u8]    ← after
-[fitness_delta: f32] ← fitness change from this mutation
-[invariant_result: u8] ← 0=pass, nonzero=violation code
-[reserved: 5 B]
+regression_budget {
+    window:      10000 mutations     ← rolling window size
+    max_negative: 15%                ← max fraction of net-negative mutations allowed
+    response:    conservative_mode   ← what to do when budget is exceeded
+}
 ```
 
-Total: 24 bytes per entry. A 1GB GLOG holds ~44 million mutation records — sufficient for a long-running entity. The GLOG enables post-hoc analysis of the entity's evolutionary trajectory: fitness curves, mutation strategy distributions, plateau detection, regression events. This is the SOMA contribution to empirical RSI research.
+When the fraction of net-negative mutations in the window exceeds `max_negative`, the mutation engine switches to conservative mode: codon swap only (no edge rewire, no insert/delete), and only on nodes with generation count > 5 (established nodes, not recently mutated ones). Conservative mode lifts when the negative fraction drops back below threshold.
+
+This is a genome-declared policy enforced by the Layer 1 mutation engine — not a Layer 0 structural invariant. The entity can evolve its own regression budget over time. The point is to make "are we degrading?" a named, measurable, first-class concept rather than something you only discover in post-hoc GLOG analysis.
+
+### 9.5 Meta-Evolution Interface
+
+The mutation engine's strategy weights are exposed at a fixed genome offset as a **mutation policy table** — a small, dense parameter block that evolution can target directly without restructuring the mutation engine's IR:
+
+```
+Mutation Policy Table (fixed offset in Layer 1 genome, 64 bytes):
+
+  Offset   Size   Field
+  ───────────────────────────────────────────────────
+  0x00     4 B    codon_swap_weight (f32)       default: 0.60
+  0x04     4 B    edge_rewire_weight (f32)      default: 0.25
+  0x08     4 B    node_insert_weight (f32)      default: 0.10
+  0x0C     4 B    node_delete_weight (f32)      default: 0.05
+  0x10     4 B    hamming_bias (f32)            default: 0.80  ← prefer small mutations
+  0x14     4 B    fitness_window_size (f32→u32) default: 100
+  0x18     4 B    pin_threshold (f32)           default: 0.90  ← fitness percentile to pin
+  0x1C     4 B    aggressive_threshold (f32)    default: 0.10  ← stall fraction before aggression
+  0x20     32 B   reserved (zero at birth)
+```
+
+These weights sum to 1.0 (codon_swap + edge_rewire + node_insert + node_delete). The mutation engine reads them before each mutation cycle. Because they live at a fixed offset, the meta-mutation target is always findable — the entity can evolve cells that tune these weights without needing to locate the mutation engine's IR nodes by graph traversal.
+
+### 9.6 GLOG as Scientific Instrument
+
+Every committed mutation appends a 32-byte record to the GLOG:
+
+```
+Offset   Size   Field
+──────────────────────────────────────────────────────────
+0x00     8 B    timestamp (u64) — CPU cycle count at commit
+0x08     4 B    node_idx (u32) — which node was mutated
+0x0C     1 B    mutation_type — 0=codon_swap 1=edge_rewire 2=insert 3=delete
+0x0D     1 B    old_opcode — before value (codon_swap only; else 0)
+0x0E     1 B    new_opcode — after value
+0x0F     1 B    strategy_id — which mutation policy produced this (user-defined; 0=default)
+0x10     4 B    fitness_delta (f32) — fitness change from this mutation
+0x14     1 B    invariant_result — 0=pass; nonzero=violation code
+0x15     1 B    flags — bit 0: snapshot_marker (see below)
+0x16     2 B    reserved
+0x18     8 B    genome_hash (u64) — GHASH of full genome at this point (snapshot entries only;
+                                    0 for normal entries to avoid per-mutation hash cost)
+```
+
+Total: 32 bytes per entry. A 1GB GLOG holds ~33 million records.
+
+**strategy_id** lets you correlate fitness outcomes with the mutation policy that produced them. When the meta-evolution interface (§9.5) changes the policy weights, the mutation engine increments its strategy_id. Post-hoc analysis can then compare fitness curves across strategy regimes.
+
+**snapshot_marker** (flags bit 0): periodically — on genome-declared schedule or manual crystallization — the mutation engine emits a GLOG entry with snapshot_marker=1 and a full `genome_hash`. This creates alignment points between the GLOG stream and any stored genome snapshots, making it possible to reconstruct the entity's evolutionary state at any logged moment.
+
+**Structural violation entries** (from Layer 0 limit breaches, §3.1) use the same 32-byte format with mutation_type=0xFF and invariant_result=the violated limit code. They are distinguishable from mutation records and counted separately in analysis.
 
 ---
 
@@ -598,13 +693,28 @@ kyzu/
 | 2 | Colony bus: shared mmap or Unix sockets? | **Resolved: sockets** | Architecture |
 | 3 | Sensory cortex (agent use case): fixed Layer 0 memory map or optional Layer 2 genome extension? | Open | Architecture — decide before Step 11a |
 | 4 | ed25519 for GSIGN: implement from scratch (NIH) or use a well-audited single-file C impl? | Open | NIH purity vs. cryptographic correctness |
-| 5 | Ghost Zone size: 8KB fixed or genome-declared? | Open | Minor |
+| 5 | Ghost Zone size: 8KB fixed or genome-declared? | **Resolved: 8KB fixed** | Closed |
 | 6 | JIT target: x86-64 only first, or abstract codegen from day one? | Open | Scope |
-| 7 | colony_router discovery: how does a new entity find the router's socket address at startup? Options: (a) well-known Unix socket path, (b) env var, (c) hardcoded in the entity's genome at SPAWN time | Open | Required before Step 11b |
-| 8 | RECV timeout: blocking indefinitely, or genome-declared timeout with a fallback opcode path? | Open | Minor — affects Step 11a |
+| 7 | colony_router discovery: well-known Unix socket path, env var, or hardcoded in genome at SPAWN time? | Open | Required before Step 11b |
+| 8 | RECV timeout: blocking indefinitely, or genome-declared timeout with fallback opcode path? | Open | Minor — affects Step 11a |
 | 9 | Gene pool: dedicated entity or a role any entity can advertise? | Open | Decide before Step 11b |
-| 10 | WAN encryption: plaintext TCP for local/trusted colonies, TLS for cross-machine? TLS conflicts with NIH if it requires a crate | Open | Defer until Step 11c |
+| 10 | WAN encryption: plaintext TCP for trusted colonies, TLS for cross-machine? TLS conflicts with NIH | Open | Defer until Step 11c |
+| 11 | Contract schema versioning: add u16 schema_version to node descriptor reserved bytes now, define DSL later? | Open | Cheap to add now; expensive to retrofit |
+| 12 | Colony-level soft limits (message rate, gene offer rate): router genome policy or spec-level convention? | Open | Clarification: these are router genome policy, NOT Layer 0 invariants. Router is evolvable so "invariant" framing is wrong |
+| 13 | SOMA_MAX_* constants: should they be seed-compiler parameters (different values per entity class) or truly global? | Open | Affects Step 2 — decide before writing codon.rs |
 
 ---
 
-*SOMA spec v0.3 — colony protocol updated to socket-based architecture with three-tier transport and evolvable colony_router. Supersedes v0.2.*
+## 14. External Review Notes
+
+### Copilot review (v0.3 → v0.4 changes)
+
+Copilot's review identified seven areas. Status of each:
+
+**Incorporated:** Layer 0 structural invariants (§3.1) — genuine gap, now specified as five named constants enforced by the eval loop. Ghost Zone structured header (§7.1) — 64-byte well-known header, 8128 bytes remain emergent. GLOG expansion to 32 bytes (§9.6) — adds `strategy_id` and `snapshot_marker`. Degradation as first-class metric (§9.4) — `regression_budget` genome declaration with conservative mode trigger. Meta-evolution interface (§9.5) — fixed-offset mutation policy table in Layer 1 genome.
+
+**Flagged, not yet incorporated:** Contract schema versioning (Q11) — the right idea, wrong time. Add a u16 schema_version to node descriptor reserved bytes now so the field exists; define the DSL when real contracts need expressing. Colony-level invariants (Q12) — intentionally rejected as "invariants": the router is an evolvable SOMA entity, so anything it enforces is genome policy, not a protocol guarantee. Renamed to "colony soft limits" to avoid the framing confusion.
+
+---
+
+*SOMA spec v0.4 — Copilot review incorporated: Layer 0 structural invariants, Ghost Zone header, GLOG 32-byte format with strategy_id and snapshot markers, regression budget, meta-evolution policy table. Supersedes v0.3.*
