@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="soma.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <CursorPos X="18" Y="6"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="soma_main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form1"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="38" Y="10"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="soma_core.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="37"/>
+        <CursorPos X="15" Y="66"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="6">
+      <Position>
+        <Filename Value="soma_main.pas"/>
+        <Caret Line="27" Column="39" TopLine="7"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_main.pas"/>
+        <Caret Line="26" Column="24"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_main.pas"/>
+        <Caret Line="30" Column="40"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_main.pas"/>
+        <Caret Line="12" Column="17"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_main.pas"/>
+        <Caret Line="32" Column="39" TopLine="15"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="11" Column="16"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="49" Column="29" TopLine="25"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>

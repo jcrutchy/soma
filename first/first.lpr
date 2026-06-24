@@ -1,0 +1,4 @@
+program first;
+
+begin
+end.

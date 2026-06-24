@@ -144,6 +144,70 @@ Immediates are unsigned little-endian. All floating-point values are `f64` reint
 ```
 Category    Hex     Mnemonic   Stack effect                Notes
 ──────────────────────────────────────────────────────────────────────────────
+
+
+
+Category,Hex,Mnemonic,Stack effect,Notes
+CONTROL,0x00,NOP,—,No operation
+,0x01,HLT,—,Halt; exit code from top
+,0x02,JMP,addr →,Unconditional jump
+,0x03,JIF,cond addr →,Jump if cond != 0
+,0x04,JNF,cond addr →,Jump if cond == 0
+,0x05,CALL,addr →,"Push return frame, jump"
+,0x06,RET,val →,"Pop frame, push val"
+,0x07,SWAP,a b → b a,Swap top two stack items
+INT ARITH,0x08,IADD,a b → (a+b),Wrapping add
+,0x09,ISUB,a b → (a-b),Wrapping sub
+,0x0A,IMUL,a b → (a*b),Wrapping mul
+,0x0B,IDIV,a b → (a/b),Trap on /0
+,0x0C,IMOD,a b → (a%b),Trap on /0
+,0x0D,INEG,a → (-a),Two's complement
+,0x0E,POP,a →,Discard top of stack
+,0x0F,ICONV,a → f64_bits(a),i64 → f64 bit reint
+FLOAT ARITH,0x10,FADD,a b → (a+b),IEEE 754 f64
+,0x11,FSUB,a b → (a-b),
+,0x12,FMUL,a b → (a*b),
+,0x13,FDIV,a b → (a/b),NaN on /0
+,0x14,FMOD,a b → (a%b),
+,0x15,FNEG,a → (-a),
+,0x16,FABS,a → |a|,
+,0x17,FCONV,a → i64_bits(a),f64 → i64 bit reint
+BITWISE,0x18,AND,a b → (a&b),
+,0x19,OR,a b → (a|b),
+,0x1A,XOR,a b → (a^b),
+,0x1B,NOT,a → (!a),Bitwise NOT
+,0x1C,SHL,a n → (a<<n),
+,0x1D,SHR,a n → (a>>n),Logical shift
+,0x1E,SAR,a n → (a>>n),Arithmetic shift
+,0x1F,POPCNT,a → count,Hamming distance
+COMPARE,0x20,EQ,a b → (a==b),
+,0x21,NEQ,a b → (a!=b),
+,0x22,LT,a b → (a<b),Signed comparison
+,0x23,LTE,a b → (a<=b),
+,0x24,GT,a b → (a>b),
+,0x25,GTE,a b → (a>=b),
+,0x26,ZERO,a → (a==0),Any-bit-clear
+,0x27,NZERO,a → (a!=0),Any-bit-set
+MEMORY,0x28,LD,addr → val,
+,0x29,ST,addr val →,
+,0x2A,LDB,addr → byte,
+,0x2B,STB,addr byte →,
+,0x2C,ALLOC,size → addr,
+,0x2D,FREE,addr →,
+,0x2E,DUP,a → a a,Duplicate top item
+,0x2F,OVER,a b → a b a,Copy 2nd item to top
+
+
+
+
+
+
+
+
+
+
+
+
 CONTROL
             0x00    NOP        —                           No operation
             0x01    HLT        —                           Halt; exit code from top of stack
