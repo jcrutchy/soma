@@ -10,7 +10,7 @@ main:
 .Lc1:
 .seh_proc main
 # [soma.lpr]
-# [10] begin
+# [11] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -22,9 +22,9 @@ main:
 # Var StateSize located in register eax
 	call	fpc_initializeunits
 # Var StateSize located in register esi
-# [11] StateSize := SizeOf(soma_main.TVMState);
+# [12] StateSize := SizeOf(soma_types.TVMState);
 	movl	$10304,%esi
-# [20] Writeln('Alignment check passed! Size is: ', StateSize);
+# [21] Writeln('Alignment check passed! Size is: ', StateSize);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA$_Ld1(%rip),%r8
@@ -40,7 +40,7 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [21] Writeln('Execution finished. Press Enter to exit...');
+# [22] Writeln('Execution finished. Press Enter to exit...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA$_Ld2(%rip),%r8
@@ -51,12 +51,12 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [22] Readln;
+# [23] Readln;
 	call	fpc_get_input
 	movq	%rax,%rcx
 	call	fpc_readln_end
 	call	fpc_iocheck
-# [23] end.
+# [24] end.
 	call	fpc_do_exit
 	nop
 	leaq	40(%rsp),%rsp
@@ -70,7 +70,7 @@ main:
 
 .section .bss
 	.balign 4
-# [8] StateSize: Integer;
+# [9] StateSize: Integer;
 U_$P$SOMA_$$_STATESIZE:
 	.zero 4
 

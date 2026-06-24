@@ -2,13 +2,14 @@ program soma;
 
 uses
   soma_main,
-  soma_core;
+  soma_core,
+  soma_types;
 
 var
   StateSize: Integer;
 
 begin
-  StateSize := SizeOf(soma_main.TVMState);
+  StateSize := SizeOf(soma_types.TVMState);
   if (StateSize mod 64) <> 0 then
   begin
     Writeln('ALIGNMENT ERROR: TVMState size is ', StateSize);
