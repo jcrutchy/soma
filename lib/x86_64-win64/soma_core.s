@@ -8,78 +8,98 @@ SOMA_CORE_$$_EXECUTE$TVMSTATE:
 .Lc1:
 .seh_proc SOMA_CORE_$$_EXECUTE$TVMSTATE
 # [soma_core.pas]
-# [26] begin
+# [19] begin
 	pushq	%rbp
 .seh_pushreg %rbp
 .Lc3:
 .Lc4:
 	movq	%rsp,%rbp
 .Lc5:
-	leaq	-16(%rsp),%rsp
-.seh_stackalloc 16
+	leaq	-32(%rsp),%rsp
+.seh_stackalloc 32
 .seh_endprologue
 # Var State located at rbp-8, size=OS_64
+# Var JumpTable located at rbp-32, size=OS_NO
 	movq	%rcx,-8(%rbp)
-.Lj8:
-# [28] if State.ip >= GENOME_SIZE then
-	movq	-8(%rbp),%rax
-	cmpq	$1024,2056(%rax)
-	jge	.Lj11
-	.balign 4,0x90
+# [20] JumpTable[0] := @_NOP;
+	leaq	.Lj7(%rip),%rax
+	movq	%rax,-32(%rbp)
+# [21] JumpTable[1] := @_PUSH;
+	leaq	.Lj8(%rip),%rax
+	movq	%rax,-24(%rbp)
+# [22] JumpTable[2] := @_POP;
+	leaq	.Lj9(%rip),%rax
+	movq	%rax,-16(%rbp)
 #  CPU ATHLON64
-# [41] mov rax, State // point to State record
-	movq	-8(%rbp),%rax
-# [42] mov rcx, [rax + 8192 + 2048 + 8] // load State.ip (simplified offset)
-	movq	10248(%rax),%rcx
-#  CPU ATHLON64
+# [26] push rbx
+	pushq	%rbx
+# [27] push r12
+	pushq	%r12
+# [28] push r13
+	pushq	%r13
+# [29] push r14
+	pushq	%r14
+# [31] mov rbx, [State]        // Load State pointer
+	movq	-8(%rbp),%rbx
+# [32] mov r12, [rbx + 2056]   // Load ip
+	movq	2056(%rbx),%r12
+# [33] mov r13, [rbx + 2048]   // Load sp
+	movq	2048(%rbx),%r13
+# [34] lea r14, [rbp - 32]    // Load address of JumpTable on stack
+	leaq	-32(%rbp),%r14
 .Lj5:
-# [53] Inc(State.ip);
-	movq	-8(%rbp),%rax
-	addq	$1,2056(%rax)
-# [54] goto _Loop;
-	jmp	.Lj8
-.Lj6:
-# [57] Inc(State.ip);
-	movq	-8(%rbp),%rax
-	addq	$1,2056(%rax)
-# [58] Inc(State.sp);
-	movq	-8(%rbp),%rax
-	addq	$1,2048(%rax)
-# [59] State.stack[State.sp] := State.genome[State.ip - 1].imm;
-	movq	-8(%rbp),%rax
-	movq	2056(%rax),%rdx
-	movslq	2060(%rax,%rdx,8),%rcx
-	movq	-8(%rbp),%rdx
-	movq	2048(%rax),%rax
-	movq	%rcx,(%rdx,%rax,8)
-# [60] goto _Loop;
-	jmp	.Lj8
+# [37] cmp r12, 1024
+	cmpq	$1024,%r12
+# [38] jge _Exit
+	jge	.Lj6
+# [41] lea rax, [rbx + 2064]
+	leaq	2064(%rbx),%rax
+# [42] movzx rdx, word ptr [rax + r12*8]
+	movzwq	(%rax,%r12,8),%rdx
+# [45] mov rax, [r14 + rdx*8]
+	movq	(%r14,%rdx,8),%rax
+# [46] jmp rax
+	jmp	*%rax
 .Lj7:
-# [63] Inc(State.ip);
-	movq	-8(%rbp),%rax
-	addq	$1,2056(%rax)
-# [64] Dec(State.sp);
-	movq	-8(%rbp),%rax
-	subq	$1,2048(%rax)
-# [65] goto _Loop;
-	jmp	.Lj8
-.Lj11:
-# [68] end;
+# [49] inc r12
+	incq	%r12
+# [50] jmp _Loop
+	jmp	.Lj5
+.Lj8:
+# [53] inc r12
+	incq	%r12
+# [54] inc r13
+	incq	%r13
+# [55] jmp _Loop
+	jmp	.Lj5
+.Lj9:
+# [58] inc r12
+	incq	%r12
+# [59] dec r13
+	decq	%r13
+# [60] jmp _Loop
+	jmp	.Lj5
+.Lj6:
+# [63] mov [rbx + 2056], r12
+	movq	%r12,2056(%rbx)
+# [64] mov [rbx + 2048], r13
+	movq	%r13,2048(%rbx)
+# [67] pop r14
+	popq	%r14
+# [68] pop r13
+	popq	%r13
+# [69] pop r12
+	popq	%r12
+# [70] pop rbx
+	popq	%rbx
+#  CPU ATHLON64
+# [72] end;
 	leaq	(%rbp),%rsp
 	popq	%rbp
 	ret
 .seh_endproc
 .Lc2:
 # End asmlist al_procedures
-# Begin asmlist al_typedconsts
-
-.section .data.n_TC_$SOMA_CORE$_$EXECUTE$TVMSTATE_$$_JUMPTABLE,"d"
-	.balign 8
-TC_$SOMA_CORE$_$EXECUTE$TVMSTATE_$$_JUMPTABLE:
-	.quad	.Lj5
-	.quad	.Lj6
-	.quad	.Lj7
-# End asmlist al_typedconsts
 # Begin asmlist al_dwarf_frame
 
 .section .debug_frame

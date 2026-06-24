@@ -9,7 +9,7 @@
         <Filename Value="soma.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="18" Y="6"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="23"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
@@ -20,7 +20,7 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="1"/>
         <CursorPos X="38" Y="10"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="23"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -28,14 +28,14 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="37"/>
-        <CursorPos X="15" Y="66"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="8"/>
+        <CursorPos X="31" Y="32"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="6">
+    <JumpHistory HistoryIndex="12">
       <Position>
         <Filename Value="soma_main.pas"/>
         <Caret Line="27" Column="39" TopLine="7"/>
@@ -63,6 +63,30 @@
       <Position>
         <Filename Value="soma_core.pas"/>
         <Caret Line="49" Column="29" TopLine="25"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="33" Column="54" TopLine="13"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="50" Column="15" TopLine="32"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="21" Column="19" TopLine="2"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="23" Column="2" TopLine="6"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="32" Column="33" TopLine="12"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_core.pas"/>
+        <Caret Line="36" Column="44" TopLine="18"/>
       </Position>
     </JumpHistory>
     <RunParams>
