@@ -1,24 +1,70 @@
 program soma;
 
+{$mode Delphi}
+
 uses
-  soma_main,
+  soma_types,
   soma_core,
-  soma_types;
+  soma_hypervisor;
 
 var
   StateSize: Integer;
+  OK:        Boolean;
 
 begin
-  StateSize := SizeOf(soma_types.TVMState);
+  OK        := True;
+  StateSize := SizeOf(TVMState);
+
+  WriteLn('SOMA - Self Organizing Machine Architecture');
+  WriteLn('===========================================');
+  WriteLn;
+  WriteLn('Startup checks:');
+
+  if SizeOf(TInstruction) <> 8 then
+  begin
+    WriteLn('FAIL: TInstruction = ', SizeOf(TInstruction), ' (expected 8)');
+    OK := False;
+  end else
+    WriteLn('OK   TInstruction = 8 bytes');
+
   if (StateSize mod 64) <> 0 then
   begin
-    Writeln('ALIGNMENT ERROR: TVMState size is ', StateSize);
-    Writeln('Size must be a multiple of 64.');
-    Writeln('Press Enter to exit...');
+    WriteLn('FAIL: TVMState = ', StateSize, ' (not 64-byte aligned)');
+    OK := False;
+  end else
+    WriteLn('OK   TVMState = ', StateSize, ' bytes (64-byte aligned)');
+
+  if GENOME_OFFSET <> 4136 then
+  begin
+    WriteLn('FAIL: GENOME_OFFSET = ', GENOME_OFFSET, ' (expected 4136)');
+    OK := False;
+  end else
+    WriteLn('OK   GENOME_OFFSET = 4136');
+
+  if VALID_OPCODE_COUNT <> 67 then
+  begin
+    WriteLn('FAIL: VALID_OPCODE_COUNT = ', VALID_OPCODE_COUNT, ' (expected 67)');
+    OK := False;
+  end else
+    WriteLn('OK   VALID_OPCODE_COUNT = 67');
+
+  WriteLn;
+
+  if not OK then
+  begin
+    WriteLn('Startup checks FAILED. Press Enter to exit.');
     Readln;
-    Halt(1); // exit with error code
+    Halt(1);
   end;
-  Writeln('Alignment check passed! Size is: ', StateSize);
-  Writeln('Execution finished. Press Enter to exit...');
+
+  WriteLn('All checks passed.');
+  WriteLn;
+
+  HypervisorInit(4);  // start with 4 colonies
+  HypervisorRun;      // blocks until Enter pressed
+  HypervisorStop;
+
+  WriteLn;
+  WriteLn('Press Enter to exit...');
   Readln;
 end.
