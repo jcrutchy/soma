@@ -15,8 +15,6 @@ This supersedes the earlier v0.1–v0.4 Rust specification. Core philosophy carr
 
 **Enjoyment and understanding over prestige.** This is a hobby project. The guiding priority is staying motivated and learning, not chasing the most fashionable toolchain. FreePascal was chosen over Rust because of a decade-plus of prior Delphi experience — recoverable muscle memory beats unfamiliar ceremony for a project meant to be sustained outside of work hours.
 
-**Write the code, let LLMs scrutinise it.** The development workflow is: write or sketch the implementation by hand, then use AI assistance to review, optimise, and catch errors — not to generate from scratch. This keeps understanding of the system intact as it grows.
-
 **NIH / minimal dependencies.** No external packages beyond what FreePascal's standard library provides (`fpjson`, `SysUtils`, `Windows`/`BaseUnix`). Procedural style throughout; globals are used freely for single-instance structures (the hypervisor, the population) without ceremony.
 
 **Bounded, auditable evolution.** Every genome execution is traceable. Mutation is constrained by structural validity (relative jump addressing, fixed-width instructions) so that splicing, swapping, or replacing genome regions cannot silently corrupt control flow.
