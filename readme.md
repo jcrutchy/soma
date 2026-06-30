@@ -1,788 +1,258 @@
 # SOMA — Self-Organizing Machine Architecture
-## Practical Implementation Specification · v0.4
+## Project Status — FreePascal Implementation
 
 ---
 
 ## 0. What This Document Is
 
-This is the engineering specification for SOMA's Layer 0 kernel and the binary formats everything above it depends on. It is not a philosophy document. Decisions made here are permanent — treat them accordingly. Where a design choice is still open it is marked **[OPEN]**.
+This is a working status document for SOMA as it currently stands. The project began as a Rust specification (preserved in git history) and was deliberately pivoted to FreePascal/Lazarus for reasons of familiarity, enjoyment, and sustainable hobby-project pace. The architecture below reflects real, compiled, running code — not aspiration. Sections marked **[PLANNED]** describe agreed direction that hasn't been built yet. Sections marked **[OPEN]** are unresolved design questions.
+
+This supersedes the earlier v0.1–v0.4 Rust specification. Core philosophy carries forward; implementation details do not.
 
 ---
 
 ## 1. Core Principles
 
-**Spawn, don't compile.** You write a seed (an intent declaration). The seed compiler produces a self-contained entity binary. The entity runs itself from that point forward. The original source becomes a historical artifact.
+**Enjoyment and understanding over prestige.** This is a hobby project. The guiding priority is staying motivated and learning, not chasing the most fashionable toolchain. FreePascal was chosen over Rust because of a decade-plus of prior Delphi experience — recoverable muscle memory beats unfamiliar ceremony for a project meant to be sustained outside of work hours.
 
-**The substrate is the intelligence.** Capability emerges from topology optimization, not from symbolic reasoning. An entity "gets smarter" by finding IR configurations that satisfy its contracts with lower cycle cost. There is no homunculus.
+**Write the code, let LLMs scrutinise it.** The development workflow is: write or sketch the implementation by hand, then use AI assistance to review, optimise, and catch errors — not to generate from scratch. This keeps understanding of the system intact as it grows.
 
-**Bounded mutation, not random thrashing.** Every mutation is constrained by invariants and contracts declared at birth. The entity cannot evolve its way around its own declared purpose. It can only find better ways to fulfil it.
+**NIH / minimal dependencies.** No external packages beyond what FreePascal's standard library provides (`fpjson`, `SysUtils`, `Windows`/`BaseUnix`). Procedural style throughout; globals are used freely for single-instance structures (the hypervisor, the population) without ceremony.
 
-**Immutable audit trail.** Every mutation is permanently logged in the genome (GLOG). An entity cannot hide its evolutionary history. This is architectural, not policy.
+**Bounded, auditable evolution.** Every genome execution is traceable. Mutation is constrained by structural validity (relative jump addressing, fixed-width instructions) so that splicing, swapping, or replacing genome regions cannot silently corrupt control flow.
 
-**NIH / no dependencies.** The Layer 0 kernel is pure Rust with zero external crates. No libc wrappers, no serde, no tokio. If it isn't in core or alloc, it isn't in the kernel.
-
----
-
-## 2. RSI Positioning (Honest)
-
-SOMA provides a concrete implementation architecture for Recursive Self-Improvement — a problem usually treated as abstract or speculative. The contribution is specific:
-
-**What SOMA actually implements** is a working RSI loop:
-1. The entity observes its own performance (PCNT hardware counters).
-2. It proposes a change to its own IR graph (bounded semantic mutation).
-3. It applies that change without human intervention (GADDR + ST + GFLUSH).
-4. It evaluates the result against its invariants and rolls back if violated.
-
-This is not a superintelligence. It is a self-optimizing system performing the RSI loop in a verifiable, auditable, bounded way. The claim is engineering, not prophecy.
-
-**What solves the bootstrapping dilemma** is the three-layer architecture. Mutations that destabilize the entity fail immediately — not because Layer 0 is "smart" enough to catch them, but because any mutation that breaks the interpreter's ability to evaluate the genome halts execution and triggers rollback. The stability guarantee is mechanical, not semantic.
-
-**The honest safety boundary:** The invariant checker lives in Layer 1, which is evolvable. An entity running long enough could in principle evolve a more permissive checker. The true Layer 0 guarantee is narrower: *the entity must remain interpretable by the kernel at all times*. Layer 1 mutations that break kernel-level interpretability are the only thing Layer 0 prevents unconditionally. Everything above that is the responsibility of well-declared invariants and the GLOG audit trail.
-
-**The degradation problem** is the most practically valuable thing SOMA contributes to RSI research. Does a self-modifying system improve indefinitely, plateau, or degrade? Nobody has been able to study this empirically because no real system exists. SOMA's GLOG gives you a complete forensic record of every mutation and its fitness outcome. You can plot the fitness curve over an entity's lifetime, detect plateau/regress patterns, and compare strategies across a colony. GLOG is a scientific instrument as much as it is an audit trail.
-
-**What SOMA does not claim:** that topology-efficiency is equivalent to general intelligence, that evolved entities will generalize beyond their fitness function, or that a sufficiently long-running colony will produce AGI. These are open philosophical questions. SOMA is an engineering substrate that makes them empirically testable.
+**Layered codon architecture.** Layer 0 is fixed, hand-written, and never evolves. Layer 1+ codons are evolved sequences of Layer 0 primitives, promoted into a reusable library once proven fit. The codon library is the accumulating intelligence of the system — not any single genome.
 
 ---
 
-## 3. Three-Layer Architecture
+## 2. What Actually Exists Right Now
+
+- A complete, compiling, running **Layer 0 virtual machine** (`soma_core.pas`) — a stack-based interpreter written in inline x86-64 assembly (Intel syntax), cross-platform between Win64 and Linux via conditional compilation.
+- A working **hypervisor** (`soma_hypervisor.pas`) that spins up multiple colony threads, each running an independent `TVMState`, executing random genomes in a tight loop, with live status reporting and clean shutdown.
+- Verified throughput in the hundreds of thousands of generations per second across 4 colony threads on commodity hardware, with zero crashes or corruption across millions of executions.
+- All core type definitions (`soma_types.pas`) with compile-time and runtime assertions guaranteeing struct layout correctness — critical since the asm layer depends on exact byte offsets.
+
+What does **not** yet exist: fitness evaluation (currently a stub returning 0.0), mutation operators, the GLOG binary logger, the live viewer, and the compiler/codegen toolchain. These are the next layers to build.
+
+---
+
+## 3. Two-Layer Architecture (Current)
 
 ```
 ┌─────────────────────────────────────────┐
-│  SOMA entity file                       │
+│  SOMA Hypervisor (Pascal, BeginThread)   │
+│  Owns population, colonies, RNG seeding  │
 ├─────────────────────────────────────────┤
-│  LAYER 0 — kernel (fixed at birth)      │  ~5–8 KB compiled Rust
-│  Stack machine. Codon evaluator.        │
-│  Genome memory map. Syscall trapdoor.   │
+│  LAYER 0 — kernel (fixed, hand-written)  │  soma_core.pas
+│  Stack machine. Pure inline asm.         │
+│  67 primitive opcodes. Jump table.       │
 ├─────────────────────────────────────────┤
-│  LAYER 1 — runtime genome (evolvable)   │  variable
-│  Graph evaluator. JIT compiler.         │
-│  Mutation engine. Healing engine.       │
-│  Fitness tracker. Invariant checker.    │
-│  Expressed as SOMA IR, run by Layer 0.  │
-├─────────────────────────────────────────┤
-│  LAYER 2 — program genome (evolvable)   │  variable
-│  Your cells. The entity's purpose.      │
-│  Run by Layer 1.                        │
+│  LAYER 1+ — evolved codons [PLANNED]     │
+│  Promoted genome sequences, reused       │
+│  as callable subroutines. Manually       │
+│  curated via semi-automatic promotion.   │
 └─────────────────────────────────────────┘
 ```
 
-Layer 0 is the only code written in Rust that never changes. It interprets Layer 1. Layer 1 interprets Layer 2. Layer 1 can mutate Layer 2 and can mutate itself. Any Layer 1 mutation that makes Layer 1 uninterpretable by Layer 0 is detected at the next evaluation step and rolled back. Layer 0 cannot be mutated by anything.
-
-The second-order consequence: because the mutation engine lives in Layer 1, the entity can evolve *how it evolves* — smarter mutation strategies, better fitness heuristics, more efficient IR search. The learning compounds.
-
-### 3.1 Layer 0 Structural Invariants
-
-Layer 0 enforces a small set of hard limits that are purely structural — they require no semantic understanding of what the program means, only knowledge of its shape. These are checked continuously by the evaluation loop and cannot be overridden by Layer 1 or Layer 2.
-
-```
-SOMA_MAX_CALL_DEPTH     = 256        ← call stack frames before trap
-SOMA_MAX_NODE_COUNT     = 1,048,576  ← genome nodes (2^20); prevents explosive growth
-SOMA_MAX_EDGE_FANOUT    = 256        ← outgoing edges per node; prevents combinatorial explosion
-SOMA_MAX_GLOG_RATE      = 65,536     ← GLOG writes per second; prevents log flooding
-SOMA_MAX_STACK_DEPTH    = 1,024      ← evaluation stack slots (existing)
-```
-
-When any limit is breached, Layer 0 traps — it does not crash, does not corrupt state, does not invoke the healing engine. It halts the offending cell, records a structural violation entry in GLOG (violation_type field, separate from the mutation record), and gives control back to the Layer 1 scheduler which decides how to respond.
-
-These limits are declared as Rust constants in `codon.rs`. They are not genome-declared and cannot be changed at runtime. An entity that needs higher limits must be spawned from a different seed compiled against different constants — a deliberate friction that makes architectural decisions visible.
-
-**Why these five specifically:** call depth and stack depth bound runaway recursion; node count bounds genome cancer (unbounded GNEW without GDEL); edge fanout bounds the graph from becoming a dense tangle that defeats the mutation engine's topology assumptions; GLOG rate bounds a pathological entity from saturating disk I/O and masking its own evolutionary signal with noise.
+Layer 0 never mutates. It is the only hand-written code in the execution path. Layer 1+ does not exist yet as a runtime concept — `$0100`–`$02FF` is reserved opcode space, and any genome that addresses it currently halts with `HR_HIGHER_LAYER`.
 
 ---
 
-## 4. Entity File Format
+## 4. The Virtual Machine
 
-A SOMA entity is a single binary file. On Unix it is marked executable. The OS loads and runs it; the kernel entry point is at a fixed offset in Layer 0.
+### 4.1 Design
 
-```
-Offset    Size      Field
-──────────────────────────────────────────────────────
-0x0000    4 B       Magic: 0x534F4D41 ("SOMA")
-0x0004    2 B       Spec version (major.minor, u8 each)
-0x0006    2 B       Flags (reserved, set to 0)
-0x0008    8 B       Layer 0 offset (always 0x0040)
-0x0010    8 B       Layer 0 size (bytes)
-0x0018    8 B       Layer 1 offset
-0x0020    8 B       Layer 1 size (bytes)
-0x0028    8 B       Layer 2 offset
-0x0030    8 B       Layer 2 size (bytes)
-0x0038    8 B       GLOG offset
-0x003F    1 B       Reserved
-0x0040    ...       Layer 0 binary (Rust-compiled kernel)
-...       ...       Layer 1 genome IR
-...       ...       Layer 2 genome IR
-...       ...       GLOG (append-only mutation record)
+Stack-based, not register-based. This was a deliberate choice over register allocation: stack machines have simpler, more uniform instruction encoding, which makes genome mutation, crossover, and splicing dramatically easier to reason about than register-allocated code. The cost — somewhat denser instruction streams than a register machine — was judged acceptable since raw dispatch speed isn't the bottleneck (fitness evaluation will be, once it exists).
+
+Two independent stacks: an **integer stack** (`Int64`, 256 slots) and a **float stack** (`Double`, 256 slots), each with its own stack pointer. This mirrors the x86-64 SSE2 split between general-purpose and XMM registers and avoids the overhead of a tagged union.
+
+### 4.2 Instruction Format
+
+Fixed-width, 8 bytes, naturally aligned:
+
+```pascal
+TInstruction = packed record
+  opcode: UInt16;  // up to 65535 opcodes
+  flags:  UInt8;   // reserved — addressing mode, imm size
+  pad:    UInt8;   // reserved
+  imm:    Int32;   // immediate value
+end;
 ```
 
-All fields little-endian. All regions 64-byte aligned (cache line boundary).
+Fixed width was chosen over UTF-8-style variable-length encoding specifically because the genome must remain robust under random mutation. A flipped length bit in a variable-width scheme corrupts every subsequent instruction; fixed width means any single instruction can be mutated, swapped, or NOP'd without affecting its neighbours. Cache density is sacrificed for mutation safety — a deliberate tradeoff, revisited only if profiling later shows it matters.
+
+### 4.3 Opcode Space
+
+16-bit opcode field, partitioned by range:
+
+```
+$0000–$00FF   Layer 0 primitives (67 implemented, rest reserved)
+$0100–$01FF   Layer 1 evolved codons        [PLANNED]
+$0200–$02FF   Layer 2+ compositions          [PLANNED]
+$FF00–$FFFF   Reserved / system
+```
+
+Layer 0 opcodes are grouped by category in blocks of ~8–16 with deliberate gaps for future expansion:
+
+```
+$00–$07   Integer stack ops    NOP PUSH POP DUP SWAP OVER ROT DROP
+$10–$18   Integer arithmetic   ADD SUB MUL DIV MOD NEG ABS INC DEC
+$20–$26   Bitwise              AND OR XOR NOT SHL SHR SAR
+$30–$35   Integer comparison   EQ NEQ LT GT LTE GTE
+$40–$45   Control flow         JMP JZ JNZ CALL RET HALT
+$50–$53   Memory [stub]        LOAD STORE MLOAD MSTORE
+$60–$64   Float stack ops      FPUSH FPOP FDUP FSWAP FDROP
+$70–$77   Float arithmetic     FADD FSUB FMUL FDIV FNEG FABS FSQRT FMOD
+$80–$85   Float comparison     FEQ FNEQ FLT FGT FLTE FGTE
+$90–$91   Conversion           I2F F2I
+$A0–$A5   System                RAND FRAND PCNT YIELD IN OUT
+```
+
+67 opcodes implemented and verified compiling correctly to clean x86-64 machine code. `LOAD`/`STORE`/`MLOAD`/`MSTORE`/`IN`/`OUT` are currently stubs that halt cleanly with `HR_UNUSED` — they're reserved slots pending a VM heap and I/O buffer design.
+
+**Control flow uses relative addressing.** `JMP`/`JZ`/`JNZ`/`CALL` add a signed offset to the instruction pointer rather than jumping to an absolute address. This was a late but important correction: absolute jump targets would be invalidated by any mutation that inserts, deletes, or reorders instructions elsewhere in the genome. Relative addressing combined with fixed-width instructions means structural mutations (NOP-insertion, point mutation, block swap) never silently break control flow.
+
+### 4.4 Dispatch
+
+A single monolithic `asm` block in `Execute()`. No Pascal-level function call per opcode — every Layer 0 primitive is an inline label reached via a 256-entry jump table sitting directly in the `.text` section (RIP-relative addressed), dispatched with `jmp`, not `call`. This was a deliberate refinement over an earlier Pascal-dispatch version that used `call`/`ret` per opcode; the monolithic version eliminates call overhead entirely for the hot path.
+
+Register assignment, fixed for the duration of `Execute`:
+```
+rbx   State pointer (TVMState base)
+r12   instruction pointer (ip)
+r13   integer stack pointer (isp)
+r14   float stack pointer (fsp)
+r15   jump table base address (set once, never touched again)
+xmm0–xmm2  float scratch registers
+```
+
+Cross-platform via `{$IFDEF WINDOWS}`: the only differences between Win64 and System V AMD64 are the incoming argument register (`rcx` vs `rdi`) and whether `xmm6`–`xmm9` need save/restore (non-volatile on Win64, volatile on Linux). Both are isolated to a few lines in the prologue/epilogue; the entire opcode body is identical on both platforms.
+
+### 4.5 Halt Reasons
+
+`TVMState` carries a `halt_reason: UInt64` field, set immediately before every exit path:
+
+```
+HR_NONE          0   still running (shouldn't be seen post-exit)
+HR_HALT          1   OP_HALT executed
+HR_YIELD         2   OP_YIELD — voluntary checkpoint
+HR_BOUNDS        3   ip exceeded GENOME_SIZE
+HR_DIV_ZERO      4   integer divide by zero
+HR_FDIV_ZERO     5   float divide by zero
+HR_UNUSED        6   hit a reserved/unimplemented opcode
+HR_HIGHER_LAYER  7   genome addressed Layer 1+ space (not yet implemented)
+```
+
+This gives the hypervisor visibility into *why* a genome stopped, which is essential both for fitness scoring and for understanding the distribution of failure modes across a randomly mutated population.
+
+### 4.6 RNG
+
+Xorshift64, implemented directly in asm for `RAND` (raw `Int64`) and `FRAND` (scaled to `Double` 0.0–1.0 via the standard `>> 11` / `× 2⁻⁵³` technique). Seeded per-colony at thread start from the colony ID, so parallel colonies diverge immediately.
+
+### 4.7 Cache and Threading Considerations
+
+`TVMState` is padded to a 64-byte boundary (cache line size) to avoid false sharing between colony threads, each of which owns an independent, heap-allocated, explicitly-aligned instance (see §5.3). The jump table lives in `.text`/effectively read-only memory and is shared safely across all threads with no locking required.
 
 ---
 
-## 5. The Codon Table
+## 5. The Hypervisor
 
-### 5.1 Instruction Encoding
+### 5.1 Responsibilities
 
-Layer 0 is a stack machine. All operands are `u64`. There are no general-purpose registers. Two stacks exist: an **evaluation stack** (1024 × u64 slots) and a **call stack** (256 frames). The evaluation stack holds all intermediate values. The call stack holds return addresses and frame metadata.
+- Owns the population array (`TGenome` array) and the array of colony thread contexts.
+- Spins up N worker threads via `BeginThread`, one `TVMState` per thread.
+- Each colony thread loops: copy a genome from the population, reset VM state, `Execute`, evaluate fitness (currently stubbed), record results, repeat.
+- A separate status thread prints live generation/fitness stats and updates a shared memory block at ~2 Hz, without blocking the colony threads.
+- Main thread blocks on `Readln`; pressing Enter signals all threads to wind down cleanly.
 
-Each instruction is one byte with an optional immediate:
+### 5.2 Verified Behaviour
 
-```
-Byte 0:  [opcode: 6 bits][imm_size: 2 bits]
+Tested with 4 colonies, 128-genome population, fully random genome initialisation (uniform draw from `VALID_OPCODES`, small random immediates). Result: sustained throughput in the 400,000+ generations/second range, stable across millions of generations, clean shutdown with no leaked threads or handles.
 
-imm_size:
-  00 → no immediate (1-byte instruction total)
-  01 → 1-byte immediate follows  (2 bytes total)
-  10 → 4-byte immediate follows  (5 bytes total)
-  11 → 8-byte immediate follows  (9 bytes total)
-```
+Fitness reads 0.0 throughout — expected, since fitness evaluation is not yet implemented. This run validated VM correctness and hypervisor plumbing, not evolutionary behaviour.
 
-Immediates are unsigned little-endian. All floating-point values are `f64` reinterpreted as `u64` bits on the stack — FCONV/ICONV handle the bit-level conversion.
+### 5.3 Memory Alignment
 
-### 5.2 The 64 Codons
+`AllocMem` does not guarantee 64-byte alignment on FreePascal. Colony states are allocated via a manual over-allocate-and-round technique (`AllocAligned`) to guarantee each `TVMState` starts on a cache line boundary regardless of what the heap allocator returns.
 
-```
-Category    Hex     Mnemonic   Stack effect                Notes
-──────────────────────────────────────────────────────────────────────────────
+### 5.4 Shared Memory
 
-
-
-Category,Hex,Mnemonic,Stack effect,Notes
-CONTROL,0x00,NOP,—,No operation
-,0x01,HLT,—,Halt; exit code from top
-,0x02,JMP,addr →,Unconditional jump
-,0x03,JIF,cond addr →,Jump if cond != 0
-,0x04,JNF,cond addr →,Jump if cond == 0
-,0x05,CALL,addr →,"Push return frame, jump"
-,0x06,RET,val →,"Pop frame, push val"
-,0x07,SWAP,a b → b a,Swap top two stack items
-INT ARITH,0x08,IADD,a b → (a+b),Wrapping add
-,0x09,ISUB,a b → (a-b),Wrapping sub
-,0x0A,IMUL,a b → (a*b),Wrapping mul
-,0x0B,IDIV,a b → (a/b),Trap on /0
-,0x0C,IMOD,a b → (a%b),Trap on /0
-,0x0D,INEG,a → (-a),Two's complement
-,0x0E,POP,a →,Discard top of stack
-,0x0F,ICONV,a → f64_bits(a),i64 → f64 bit reint
-FLOAT ARITH,0x10,FADD,a b → (a+b),IEEE 754 f64
-,0x11,FSUB,a b → (a-b),
-,0x12,FMUL,a b → (a*b),
-,0x13,FDIV,a b → (a/b),NaN on /0
-,0x14,FMOD,a b → (a%b),
-,0x15,FNEG,a → (-a),
-,0x16,FABS,a → |a|,
-,0x17,FCONV,a → i64_bits(a),f64 → i64 bit reint
-BITWISE,0x18,AND,a b → (a&b),
-,0x19,OR,a b → (a|b),
-,0x1A,XOR,a b → (a^b),
-,0x1B,NOT,a → (!a),Bitwise NOT
-,0x1C,SHL,a n → (a<<n),
-,0x1D,SHR,a n → (a>>n),Logical shift
-,0x1E,SAR,a n → (a>>n),Arithmetic shift
-,0x1F,POPCNT,a → count,Hamming distance
-COMPARE,0x20,EQ,a b → (a==b),
-,0x21,NEQ,a b → (a!=b),
-,0x22,LT,a b → (a<b),Signed comparison
-,0x23,LTE,a b → (a<=b),
-,0x24,GT,a b → (a>b),
-,0x25,GTE,a b → (a>=b),
-,0x26,ZERO,a → (a==0),Any-bit-clear
-,0x27,NZERO,a → (a!=0),Any-bit-set
-MEMORY,0x28,LD,addr → val,
-,0x29,ST,addr val →,
-,0x2A,LDB,addr → byte,
-,0x2B,STB,addr byte →,
-,0x2C,ALLOC,size → addr,
-,0x2D,FREE,addr →,
-,0x2E,DUP,a → a a,Duplicate top item
-,0x2F,OVER,a b → a b a,Copy 2nd item to top
-
-
-
-
-
-
-
-
-
-
-
-
-CONTROL
-            0x00    NOP        —                           No operation
-            0x01    HLT        —                           Halt; exit code from top of stack
-            0x02    JMP        addr →                      Unconditional jump; addr is imm or popped
-            0x03    JIF        cond addr →                 Jump if cond != 0
-            0x04    JNF        cond addr →                 Jump if cond == 0
-            0x05    CALL       addr →                      Push return frame, jump to addr
-            0x06    RET        val →                       Pop frame, push val, resume caller
-            0x07    SWAP       a b → b a                   Swap top two stack items [was YLD — see §5.3]
-
-INT ARITHMETIC
-            0x08    IADD       a b → (a+b)                 Wrapping add
-            0x09    ISUB       a b → (a-b)                 Wrapping sub
-            0x0A    IMUL       a b → (a*b)                 Wrapping mul
-            0x0B    IDIV       a b → (a/b)                 Trap on divide-by-zero
-            0x0C    IMOD       a b → (a%b)                 Trap on divide-by-zero
-            0x0D    INEG       a → (-a)                    Two's complement negate
-            0x0E    IABS       a → |a|                     Absolute value (signed)
-            0x0F    ICONV      a → f64_bits(a as f64)      i64 → f64 bit reinterpret
-
-FLOAT ARITHMETIC
-            0x10    FADD       a b → (a+b)                 IEEE 754 f64
-            0x11    FSUB       a b → (a-b)
-            0x12    FMUL       a b → (a*b)
-            0x13    FDIV       a b → (a/b)                 NaN on /0, not trap
-            0x14    FMOD       a b → (a%b)
-            0x15    FNEG       a → (-a)
-            0x16    FABS       a → |a|
-            0x17    FCONV      a → i64_bits(a as i64)      f64 → i64 bit reinterpret
-
-BITWISE / LOGIC
-            0x18    AND        a b → (a&b)
-            0x19    OR         a b → (a|b)
-            0x1A    XOR        a b → (a^b)
-            0x1B    NOT        a → (!a)                    Bitwise NOT
-            0x1C    SHL        a n → (a<<n)
-            0x1D    SHR        a n → (a>>n)                Logical (zero-fill)
-            0x1E    SAR        a n → (a>>n)                Arithmetic (sign-extend)
-            0x1F    POPCNT     a → popcount(a)             Count set bits; used for Hamming distance
-
-COMPARE
-            0x20    EQ         a b → (a==b) as u64         0 or 1
-            0x21    NEQ        a b → (a!=b) as u64
-            0x22    LT         a b → (a<b)  as u64         Signed comparison
-            0x23    LTE        a b → (a<=b) as u64
-            0x24    GT         a b → (a>b)  as u64
-            0x25    GTE        a b → (a>=b) as u64
-            0x26    ZERO       a → (a==0)  as u64          Any-bit-clear check
-            0x27    NZERO      a → (a!=0)  as u64          Any-bit-set check
-
-MEMORY
-            0x28    LD         addr → val                  Load u64 from addr
-            0x29    ST         addr val →                  Store u64 at addr
-            0x2A    LDB        addr → byte                 Load u8, zero-extend
-            0x2B    STB        addr byte →                 Store low byte of val
-            0x2C    ALLOC      size → addr                 Allocate heap region; returns base addr
-            0x2D    FREE       addr →                      Free heap region at addr
-            0x2E    COPY       dst src len →               memcpy
-            0x2F    FILL       dst byte len →              memset
-
-GENOME                                                      ← unique to SOMA
-            0x30    GADDR      idx → addr                  Address of node descriptor (48 B) in genome
-            0x31    GNEW       → idx                       Allocate new node slot; returns index
-            0x32    GDEL       idx →                       Mark node deleted (lazy; reclaimed at GFLUSH)
-            0x33    GMETA      idx field → val             Read metadata field from node (see §6.2)
-            0x34    GLOG       ptr len →                   Append len bytes at ptr to mutation log (WRITE ONLY)
-            0x35    GFLUSH     →                           Atomic write of in-memory genome to entity file
-            0x36    GHASH      ptr len → hash_lo hash_hi  SipHash-1-3 over genome region; pushes two u64
-            0x37    GSIGN      ptr len →                   Sign region with entity private key (ed25519)
-
-ENTITY / IO
-            0x38    SYSCALL    nr a0..a5 → ret             Raw OS syscall; args/ret per ABI
-            0x39    SPAWN      genome_ptr genome_len → id  Birth child entity; returns entity ID
-            0x3A    SEND       id msg_ptr msg_len →        Send message to entity by ID
-            0x3B    RECV       buf_ptr buf_len → msg_len   Blocking receive from colony bus
-            0x3C    EMIT       type_tag data_ptr len →     Emit structured event to event stream
-            0x3D    PCNT       counter_id → val            Read hardware performance counter
-            0x3E    SCHED      priority →                  Hint to colony scheduler; non-blocking yield
-            0x3F    DIE        successor_ptr successor_len → Terminate; optionally SPAWN successor first
-```
-
-### 5.3 Notable Design Choices
-
-**POPCNT at 0x1F.** The mutation engine computes Hamming distances between IR node descriptors to bound how "far" a proposed mutation moves. POPCNT is a single native instruction on x86-64 (BSF/LZCNT family) and ARM64 (CNT). It earns its slot.
-
-**ZERO / NZERO at 0x26–0x27.** These are not redundant with EQ. ZERO checks the entire 64-bit pattern for all-zero in one instruction path. The fitness tracker calls these thousands of times per second when checking whether a delta improved fitness. They avoid the cost of pushing a zero immediate before EQ.
-
-**GLOG is write-only by design.** There is no GREAD for the mutation log. Layer 1 can GHASH the log (to verify integrity) or GSIGN a region of it (for colony trust), but cannot delete or overwrite entries. This is enforced at the Layer 0 evaluation switch, not by policy.
-
-**PCNT takes a counter_id.** The mapping of counter_id to hardware MSR is platform-specific and handled by Layer 0's syscall layer. Standard IDs: 0 = CPU cycles, 1 = retired instructions, 2 = L1 cache misses, 3 = L2 cache misses, 4 = branch mispredictions, 5 = memory bandwidth. Entities discover available counters at birth and record them in genome metadata.
+A named file mapping (`CreateFileMapping`/`MapViewOfFile`, Windows) exposes a small `TSOMAShmem` struct — generation count, active colony count, best/avg fitness, uptime — intended to be read by a future, fully separate viewer process. This was a deliberate architectural decision: the GLOG viewer and any live charting tool must run as an independent process reading shared memory, not be embedded in the hypervisor. Mixing a UI message loop with a CPU-bound evolution loop in the same process risks starving one or the other.
 
 ---
 
-## 6. Genome Binary Format
+## 6. Genome Mutation Strategy **[PLANNED]**
 
-### 6.1 IR Graph Overview
+Not yet implemented. Agreed design direction:
 
-The genome (Layer 1 and Layer 2) is a typed directed graph. Nodes are operations. Edges are typed data dependencies. Every node carries metadata.
+- **Point mutation** — replace a single instruction's opcode with another drawn from `VALID_OPCODES` (a flat 67-entry const array already defined in `soma_types.pas`).
+- **Immediate mutation** — adjust an instruction's `imm` field by small random deltas.
+- **Sub-genome copy/splice** — copy a contiguous block of instructions from one genome into another; the simplest and likely most productive operator, since it requires no structural analysis and relies entirely on the relative-jump-safe instruction format.
+- **NOP-insertion** — replace instructions with `OP_NOP` rather than shifting the genome array, preserving all relative jump offsets elsewhere in the genome.
+- **Intron-biased mutation** — a planned refinement where a single "shadow" execution pass marks which instructions were actually reached, and mutation pressure is weighted toward active instructions (~90%) over inactive ones (~10%), rather than uniform random selection across the whole genome. This directly addresses the problem of most random mutations being immediately fatal or inert.
 
-The genome region in the entity file is:
-```
-[genome_header: 32 B]
-[node_table: node_count × 48 B]
-[edge_table: edge_count × 16 B]
-[metadata_block: variable]
-[string_pool: variable]    ← for contract/invariant text
-```
-
-### 6.2 Node Descriptor (48 bytes, cache-line friendly)
-
-```
-Offset  Size  Field
-──────────────────────────────────────────
-0x00    1 B   opcode (u8, from codon table)
-0x01    1 B   type_sig (encoded input/output types)
-0x02    2 B   in_edge_count (u16)
-0x04    2 B   out_edge_count (u16)
-0x06    2 B   flags (see below)
-0x08    4 B   first_in_edge_idx (u32, index into edge table)
-0x0C    4 B   first_out_edge_idx (u32)
-0x10    4 B   contract_id (u32, index into string pool; 0 = none)
-0x14    4 B   invariant_mask (u32, bitmask of which invariants apply)
-0x18    4 B   generation (u32, mutation count for this node)
-0x1C    4 B   fitness_score (f32, last measured fitness contribution)
-0x20    8 B   perf_samples (u64, packed cycle/miss counts from last eval)
-0x28    8 B   mutation_log_offset (u64, byte offset of last GLOG entry)
-0x30    0 B   (end — 48 bytes total)
-```
-
-Node flags (u16 bitmask):
-```
-bit 0   deleted (set by GDEL, cleared at GFLUSH)
-bit 1   pinned  (mutation engine must not touch this node)
-bit 2   hot     (set by runtime when call count exceeds JIT threshold)
-bit 3   jit_compiled (Layer 1 JIT has native version cached)
-bit 4   contract_verified (invariant checker has cleared this node)
-bits 5–15 reserved
-```
-
-### 6.3 Edge Descriptor (16 bytes)
-
-```
-Offset  Size  Field
-──────────────────
-0x00    4 B   src_node_idx (u32)
-0x04    4 B   dst_node_idx (u32)
-0x08    2 B   src_slot (u16, output slot index on src)
-0x0A    2 B   dst_slot (u16, input slot index on dst)
-0x0C    2 B   type_tag (u16, data type flowing on this edge)
-0x0E    2 B   flags (reserved)
-```
-
-### 6.4 GMETA Field IDs
-
-When Layer 1 calls `GMETA idx field`, the `field` argument selects which metadata to read:
-```
-0   generation counter
-1   fitness score (as u64 bits of f32)
-2   perf_samples packed word
-3   mutation_log_offset
-4   flags word
-5   contract_id
-6   invariant_mask
-7   in_edge_count
-8   out_edge_count
-```
-
-Write is `GMETA idx field val →` (three-argument form); reading is `GMETA idx field → val`. Layer 0 distinguishes by stack depth at the opcode boundary. **[OPEN: may split into GMETA_R and GMETA_W]**
+Dependency-aware mutation (constraining replacement opcodes to those with compatible stack effects) is acknowledged as valuable but deferred — higher implementation cost, lower near-term payoff than the operators above.
 
 ---
 
-## 7. The Ghost Zone
+## 7. Fitness System **[PLANNED]**
 
-The Ghost Zone is an 8KB page-aligned scratchpad region in the genome, separate from the node and edge tables. It is the only genome region that the mutation engine does not touch — no node descriptors, no edges, no GDEL, no GFLUSH changes to its content structure.
+Decided architecture, not yet built:
 
-Purpose: emergent persistence. The entity may use this region for anything — internal maps, learned heuristics, cached computations, self-generated notes about past mutations. Its content is opaque to Layer 0. Layer 1 may choose to interpret it however it evolves to interpret it.
+- **JSON fitness files**, not compiled DLLs. FPC's built-in `fpjson`/`jsonparser` units remove the need for any external dependency. A fitness target is data — a pipeline of named measurements (low-level VM observables through to higher-level mathematical scoring functions like matrix identity distance) plus weighted scoring rules — not code. This makes fitness targets editable without recompilation and fully transparent (you can read exactly what a genome is being scored against).
+- **Measurement primitives** are a fixed, compiled library inside the hypervisor (e.g. `istack_slice`, `matrix_multiply`, `identity_distance`, `array_sorted`, `epsilon_score`), referenced by name from JSON and composed via a small pipeline of named intermediate values (`m1`, `m2`, `m3`...).
+- Scope intentionally starts narrow — perhaps 15–20 primitives covering the initial "training wheels" targets (sorting, basic matrix operations) — with a small custom expression evaluator over named measurement variables added later only if composition alone proves insufficient.
+- **Pluggable, weighted criteria.** Multiple fitness criteria combine via configurable weights; weights may eventually be evolvable themselves, but only once a stable population of working genomes exists to evolve from — weight evolution starts disabled.
 
-The Ghost Zone persists across sessions via the normal GFLUSH mechanism. It is the entity's equivalent of working memory. When first spawned, it is zeroed. What it becomes over the entity's lifetime is entirely the product of evolution.
-
-### 7.1 Layout
-
-```
-Ghost Zone (8192 bytes total, page-aligned):
-
-  Offset   Size   Field
-  ─────────────────────────────────────────────────────────
-  0x0000   8 B    magic: 0x47484F5354 ("GHOST\0\0\0") — integrity sentinel
-  0x0008   4 B    schema_version (u32) — entity-defined; 0 at birth
-  0x000C   4 B    write_count (u32) — incremented on every Ghost Zone write
-  0x0010   8 B    last_write_cycle (u64) — CPU cycle count of last write
-  0x0018   8 B    content_hash (u64) — SipHash of bytes 0x0040–0x1FFF; 0 = unchecked
-  0x0020   8 B    reserved[0] — for future header use; set to 0 at birth
-  0x0028   8 B    reserved[1]
-  0x0030   8 B    reserved[2]
-  0x0038   8 B    reserved[3]
-  0x0040   8128 B emergent region — fully opaque to Layer 0 and spec
-  ─────────────────────────────────────────────────────────
-  Total:   8192 B (0x2000)
-```
-
-The 64-byte header gives Layer 0 a stable foothold for debugging and analytics: `write_count` and `last_write_cycle` let you observe whether the Ghost Zone is being used at all without interpreting its content. `content_hash` is written by the entity itself (via `GLOG`-adjacent convention, not enforced) to allow integrity checks. `schema_version` is entirely entity-defined — it is 0 at birth and may be incremented when the entity's evolved interpretation of the emergent region changes enough to be considered a new format.
-
-The 8128-byte emergent region has no structure imposed by the spec. Layer 0 will never define additional fields there. Whatever evolves there is the entity's private business.
-
-```
-Ghost Zone access:
-  Base address:  resolved via GADDR on the reserved ghost_base node (node index 0 by convention)
-  Read/write:    LD / ST / LDB / STB at (ghost_base + offset)
-  Mutation:      emergent region never touched by the mutation engine
-                 header fields are read-only to the mutation engine (write_count may be updated
-                 by Layer 0 internally on header writes, but mutation engine skips this region)
-  GFLUSH:        full 8192 bytes included in serialization
-```
+Training-wheels progression agreed: sorting → matrix algebra → composition of the two → open-ended targets, with each stage providing ground-truth-verifiable fitness and progressively richer Layer 1 codon material.
 
 ---
 
-## 8. Memory Model
+## 8. Logging **[PLANNED]**
 
-The entity's genome is memory-mapped via `mmap` at startup. Layer 0 maps the genome region as `PROT_READ | PROT_WRITE`. The kernel machine code region is mapped `PROT_READ | PROT_EXEC`. These are separate mappings.
-
-**Atomic I/O with turn-bit synchronization.** When two entities share a genome region (e.g., during horizontal gene transfer via the colony gene pool), concurrent access is coordinated by a turn-bit: a single u64 at a fixed offset at the start of each shared page. The writer sets bit 0 to 1 before writing, clears it after. The reader spins on bit 0. This avoids any need for OS mutex primitives in the hot path.
-
-**Cache line discipline.** All node descriptors are 48 bytes — not a cache line (64 bytes), but deliberately smaller so that two adjacent nodes fit within three cache lines, minimizing eviction during graph traversal. The edge table entries are 16 bytes — four per cache line.
-
-**GFLUSH atomicity.** GFLUSH writes the evolved genome back to the entity file using a write-to-temp + atomic rename strategy:
-1. Write new genome content to `<entity_file>.tmp`
-2. fsync the tmp file
-3. Atomic rename over the original
-
-If the process is killed between steps 2 and 3, the original file is intact. If killed after step 3, the evolved genome is persisted. There is no corruption window.
+- **GLOG** — binary, append-only, fixed-size records (originally specified at 32 bytes; field set to be finalised against the current 11-field draft). Written via a ring buffer drained by a dedicated logger thread so the hot evolution loop never blocks on I/O. Rotated and gzip-compressed once active logs grow large — genome data compresses well due to repetition.
+- **Benchmark record** — append-only JSONL, one line per fitness evaluation run, cross-referencing GLOG entries by a `genome_ref` field. Forms the basis of a self-raising benchmark suite: when a genome meaningfully beats the current reference implementation for a benchmark, a human reviews and may promote it as the new baseline, bumping the benchmark version.
+- **GLOG Viewer** — a fully separate Lazarus GUI application (using the bundled `TAChart` package), reading binary GLOG files from disk and live shared-memory state from the running hypervisor. Deliberately decoupled from the hypervisor process for the reasons given in §5.4.
 
 ---
 
-## 9. Evolutionary Mechanics
+## 9. Codon Promotion **[PLANNED]**
 
-### 9.1 Bounded Semantic Mutation
+Layer 1 codon promotion is intended to be **semi-automatic**: the GLOG viewer surfaces candidate promotions with statistical justification (frequency of independent discovery across colonies, fitness delta with/without the candidate sequence, peak fitness contribution) and simple promote/deny buttons. This avoids both unsupervised auto-promotion (risk of premature lock-in around mediocre codons) and the tedium of manually digging through raw logs.
 
-The mutation engine (implemented in Layer 1, run by Layer 0) performs three classes of mutations:
-
-**Codon swap.** Replace a node's opcode with a semantically compatible alternative. Compatibility is defined by the node's type signature and its declared contract. The engine computes the Hamming distance (via POPCNT) between the current opcode and candidate opcodes to bias toward small changes.
-
-**Edge rewire.** Redirect an edge from one source node to another, preserving type compatibility. This is how the entity discovers new data flow paths — effectively restructuring its algorithm without adding or removing nodes.
-
-**Node insertion/deletion.** GNEW to allocate a new node, wire it in, evaluate fitness. GDEL to remove a node whose removal improves fitness. Both are constrained by invariant checking after the change.
-
-All mutations are applied speculatively to a copy of the affected subgraph. The invariant checker validates the mutated copy before committing. If validation fails, the copy is discarded. If the fitness improves, the mutation is committed and logged via GLOG.
-
-### 9.2 Invariants and Contracts
-
-**Invariants** are boolean conditions declared at birth that must hold after every mutation. They are checked by the invariant checker cell in Layer 1. Example invariants: output type must be [T], cycle count must not exceed N, call depth must not exceed M.
-
-**Contracts** are per-cell declarations of what a cell must produce given its inputs. The contract is checked by running the mutated cell against a sample of known-correct input/output pairs stored in the genome at birth. If the mutated cell produces different outputs for any sample, the mutation is rejected regardless of fitness improvement.
-
-Contracts are the reason bounded semantic mutation is not the same as classical Linear Genetic Programming. LGP mutates freely and selects by fitness alone. SOMA mutations are additionally constrained to preserve declared behavior.
-
-### 9.3 Fitness Measurement
-
-Fitness is measured via PCNT hardware counters sampled before and after cell execution. The primary fitness dimension is cycle count per correct invocation. Secondary dimensions (cache misses, branch mispredictions) are recorded in the node's perf_samples field.
-
-The entity's genome-level fitness function is declared at birth:
-```
-fitness {
-    primary:    minimize cycle_count
-    secondary:  minimize cache_misses, minimize branch_mispredictions
-    weight:     [1.0, 0.3, 0.2]    ← linear combination
-}
-```
-
-The mutation engine tracks a rolling fitness window (last N invocations) per node. Nodes whose fitness has not improved in M mutation attempts are marked for aggressive mutation (edge rewire rather than codon swap). Nodes that consistently improve fitness are pinned (flag bit 1) to protect them from mutation.
-
-### 9.4 Degradation Tracking
-
-The fitness window per node (rolling last-N invocations) gives short-term visibility. For long-term degradation detection, the entity genome declares a **regression budget**:
-
-```
-regression_budget {
-    window:      10000 mutations     ← rolling window size
-    max_negative: 15%                ← max fraction of net-negative mutations allowed
-    response:    conservative_mode   ← what to do when budget is exceeded
-}
-```
-
-When the fraction of net-negative mutations in the window exceeds `max_negative`, the mutation engine switches to conservative mode: codon swap only (no edge rewire, no insert/delete), and only on nodes with generation count > 5 (established nodes, not recently mutated ones). Conservative mode lifts when the negative fraction drops back below threshold.
-
-This is a genome-declared policy enforced by the Layer 1 mutation engine — not a Layer 0 structural invariant. The entity can evolve its own regression budget over time. The point is to make "are we degrading?" a named, measurable, first-class concept rather than something you only discover in post-hoc GLOG analysis.
-
-### 9.5 Meta-Evolution Interface
-
-The mutation engine's strategy weights are exposed at a fixed genome offset as a **mutation policy table** — a small, dense parameter block that evolution can target directly without restructuring the mutation engine's IR:
-
-```
-Mutation Policy Table (fixed offset in Layer 1 genome, 64 bytes):
-
-  Offset   Size   Field
-  ───────────────────────────────────────────────────
-  0x00     4 B    codon_swap_weight (f32)       default: 0.60
-  0x04     4 B    edge_rewire_weight (f32)      default: 0.25
-  0x08     4 B    node_insert_weight (f32)      default: 0.10
-  0x0C     4 B    node_delete_weight (f32)      default: 0.05
-  0x10     4 B    hamming_bias (f32)            default: 0.80  ← prefer small mutations
-  0x14     4 B    fitness_window_size (f32→u32) default: 100
-  0x18     4 B    pin_threshold (f32)           default: 0.90  ← fitness percentile to pin
-  0x1C     4 B    aggressive_threshold (f32)    default: 0.10  ← stall fraction before aggression
-  0x20     32 B   reserved (zero at birth)
-```
-
-These weights sum to 1.0 (codon_swap + edge_rewire + node_insert + node_delete). The mutation engine reads them before each mutation cycle. Because they live at a fixed offset, the meta-mutation target is always findable — the entity can evolve cells that tune these weights without needing to locate the mutation engine's IR nodes by graph traversal.
-
-### 9.6 GLOG as Scientific Instrument
-
-Every committed mutation appends a 32-byte record to the GLOG:
-
-```
-Offset   Size   Field
-──────────────────────────────────────────────────────────
-0x00     8 B    timestamp (u64) — CPU cycle count at commit
-0x08     4 B    node_idx (u32) — which node was mutated
-0x0C     1 B    mutation_type — 0=codon_swap 1=edge_rewire 2=insert 3=delete
-0x0D     1 B    old_opcode — before value (codon_swap only; else 0)
-0x0E     1 B    new_opcode — after value
-0x0F     1 B    strategy_id — which mutation policy produced this (user-defined; 0=default)
-0x10     4 B    fitness_delta (f32) — fitness change from this mutation
-0x14     1 B    invariant_result — 0=pass; nonzero=violation code
-0x15     1 B    flags — bit 0: snapshot_marker (see below)
-0x16     2 B    reserved
-0x18     8 B    genome_hash (u64) — GHASH of full genome at this point (snapshot entries only;
-                                    0 for normal entries to avoid per-mutation hash cost)
-```
-
-Total: 32 bytes per entry. A 1GB GLOG holds ~33 million records.
-
-**strategy_id** lets you correlate fitness outcomes with the mutation policy that produced them. When the meta-evolution interface (§9.5) changes the policy weights, the mutation engine increments its strategy_id. Post-hoc analysis can then compare fitness curves across strategy regimes.
-
-**snapshot_marker** (flags bit 0): periodically — on genome-declared schedule or manual crystallization — the mutation engine emits a GLOG entry with snapshot_marker=1 and a full `genome_hash`. This creates alignment points between the GLOG stream and any stored genome snapshots, making it possible to reconstruct the entity's evolutionary state at any logged moment.
-
-**Structural violation entries** (from Layer 0 limit breaches, §3.1) use the same 32-byte format with mutation_type=0xFF and invariant_result=the violated limit code. They are distinguishable from mutation records and counted separately in analysis.
+A promoted codon is recorded with a reference to the fitness file that validated it and the GLOG slice it came from — giving each entry in the Layer 1 library full provenance back to the generation and colony that produced it.
 
 ---
 
-## 10. Colony Protocol
+## 10. Compiler / Codegen **[PLANNED, EARLY DISCUSSION ONLY]**
 
-### 10.1 Design Decision: Sockets over mmap
+Long-term direction, not yet started, captured here so the idea isn't lost:
 
-Colony communication uses sockets throughout. The alternative — shared mmap with turn-bit synchronization — would constrain entities to the same address space, collapsing the colony to a single machine and a single process. Sockets impose no such constraint. The same `SEND`/`RECV` opcode semantics work whether the target entity is a sibling process, a process on a LAN peer, or a node across a BOINC-style WAN cluster. The transport changes; the opcodes do not.
+The aim is to compile one or more genomes — plus any Layer 1 codon dependencies — directly to native machine code, bypassing the interpreter entirely. Three output formats under consideration, roughly in order of implementation priority:
 
-This also makes the routing strategy evolvable: the `colony_router` entity handles address resolution and is itself a SOMA entity subject to mutation and improvement over its lifetime.
+1. **Genome → `.s` (assembly text)** — the most useful first step. Effectively the inverse of what `soma_core.pas` does at runtime: walk the genome and emit the equivalent asm sequence per instruction. Immediately useful as a human-readable disassembler/debugging tool for the GLOG viewer, and can be handed to `as`/`ld` (via MinGW on Windows) to produce a real binary without implementing an object file format from scratch.
+2. **Genome → raw machine code blob** — a SOMA-native format (conceptually similar to a Delphi `.dcu`): a small header (code size, stack depth requirements, codon dependency list) followed by raw executable bytes. Loadable at runtime by any host process via `VirtualAlloc`/`mmap` + mark-executable, callable as a function pointer with a defined calling convention. No linker, no file format ceremony. This is the most architecturally interesting option since it enables embedding evolved code directly into other programs.
+3. **Genome → `.obj` (COFF/ELF) → linked executable** — full toolchain independence, highest implementation cost.
 
-### 10.2 Entity Addressing
+Explicitly **not** planned: compiling genomes to human-readable C or Pascal source. Evolved genomes are not expected to decompose meaningfully into idiomatic high-level code, and forcing that mapping would be both difficult and pointless — the genome's "language" is its own.
 
-Every entity has two addresses:
-
-**entity_id (stable, permanent):** A u64 derived from `GHASH` of the entity's initial genome at birth. Globally unique by construction — no coordination or registry required. This ID never changes across the entity's lifetime, even if it moves between machines.
-
-**socket_addr (ephemeral):** The current `host:port` (TCP) or filesystem path (Unix domain socket) where the entity is listening. Assigned at SPAWN, released at DIE. Stored in the `colony_router`'s routing table, not in the entity's own genome.
-
-Entities address each other exclusively by entity_id. The router resolves IDs to socket addresses transparently. An entity has no knowledge of — and no dependency on — where its peers are running.
-
-### 10.3 Three-Tier Transport
-
-```
-Tier 1 — same machine (default)
-  Transport:   Unix domain sockets
-  Address:     /tmp/soma/<entity_id_hex_16>.sock
-  Latency:     ~1–5 µs (kernel-buffered, no TCP stack)
-  Use when:    entities are on the same host
-
-Tier 2 — LAN colony
-  Transport:   TCP
-  Address:     <ip>:<port>  (assigned by OS, registered with router)
-  Latency:     ~100–500 µs
-  Use when:    colony spans multiple machines on a local network
-
-Tier 3 — WAN / BOINC-style distributed colony
-  Transport:   TCP between colony_router peers
-  Address:     colony_router on each machine peers with others
-  Latency:     network-dependent
-  Use when:    heterogeneous hardware pool; entities evolve hardware-specific
-               variants and share them across the colony gene pool
-```
-
-Layer 0 knows only "send bytes to socket fd" and "recv bytes from socket fd." Tier selection is the router's responsibility, not the kernel's.
-
-### 10.4 The colony_router Entity
-
-The `colony_router` is a standard SOMA entity — not a kernel primitive — spawned at colony startup. It maintains the routing table in its own genome (Layer 2), which means the routing strategy itself is evolvable. A colony running long enough may develop a smarter router: one that predicts message patterns, pre-establishes connections, or partitions routing by gene pool region.
-
-Responsibilities:
-- Accept registration messages from newly SPAWNed entities (`ROUTE_REGISTER`)
-- Accept deregistration from dying entities (`ROUTE_DEREGISTER`)
-- Forward SEND messages from sender socket to recipient socket
-- Bridge Tier 1 → Tier 2 when sender and recipient are on different machines
-- Peer with `colony_router` instances on other machines for Tier 3
-
-The router's entity_id is declared in the colony genesis genome and known to all entities at SPAWN time — it is the one well-known address in the system.
-
-### 10.5 SPAWN
-
-`SPAWN genome_ptr genome_len → entity_id`
-
-Forks the current entity's process. The child receives a copy of the specified genome region (not the parent's full genome — the child's seed genome is passed explicitly). On startup, the child opens a socket, registers with the `colony_router` (SEND to the well-known router entity_id), and begins listening. The child's entity_id is the GHASH of its initial genome. Parent and child communicate exclusively via SEND/RECV.
-
-### 10.6 Message Wire Format
-
-TCP is a stream protocol — it does not preserve message boundaries. All messages are prefixed with a 4-byte length field:
-
-```
-Offset   Size   Field
-──────────────────────────────────────────────────────
-0x00     4 B    msg_len (u32, LE) — total bytes following this field
-0x04     8 B    sender_id (u64, LE)
-0x0C     8 B    recipient_id (u64, LE)
-0x14     4 B    type_tag (u32, LE) — application-defined
-0x18     4 B    body_len (u32, LE)
-0x1C     N B    body (body_len bytes)
-```
-
-Total header: 28 bytes. `msg_len` = 24 + body_len (excludes the 4-byte length prefix itself).
-
-Unix domain socket messages use the same format for consistency — the framing is identical across all tiers, so the RECV implementation is the same code path regardless of transport.
-
-### 10.7 Reserved type_tag Values
-
-```
-0x00000000   ROUTE_REGISTER    entity → router: "I am alive at this socket"
-0x00000001   ROUTE_DEREGISTER  entity → router: "I am dying"
-0x00000002   ROUTE_QUERY       entity → router: "where is entity_id X?"
-0x00000003   ROUTE_REPLY       router → entity: response to ROUTE_QUERY
-0x00000010   GENE_OFFER        entity → gene pool: "I evolved a useful cell"
-0x00000011   GENE_REQUEST      entity → gene pool: "give me cells for contract X"
-0x00000012   GENE_TRANSFER     gene pool → entity: cell subgraph bytes + signature
-0x00000013   GENE_ACK          entity → gene pool: "accepted / rejected + reason"
-0x00000100   PEER_HELLO        router → router: colony peering handshake
-0x00000101   PEER_ROUTE_SYNC   router → router: routing table delta sync
-```
-
-Values 0x00001000 and above are free for application use.
-
-### 10.8 Horizontal Gene Transfer
-
-When an entity evolves a cell that significantly improves fitness:
-1. `GHASH` the cell's node subgraph → `hash_lo`, `hash_hi`
-2. `GSIGN` the subgraph → signature appended to genome
-3. `SEND` to the gene pool entity with `type_tag=GENE_OFFER`, body containing subgraph bytes, hash pair, signature, and the contract_id the cell satisfies
-
-The gene pool entity (itself a SOMA entity, evolvable) indexes the offer by contract_id and hardware profile (derived from the offering entity's PCNT metadata). When another entity requests cells for a given contract, the gene pool returns the best-performing candidates for that entity's hardware profile.
-
-Receiving entities run their own invariant checker against accepted cells before wiring them in. Cells that fail local invariant checking are rejected and a `GENE_ACK` with the violation code is sent back. The gene pool uses rejection rates to down-rank cells that consistently fail on certain hardware configurations.
-
-**The BOINC case:** When the colony spans heterogeneous hardware, entities on different machines evolve different Layer 1 variants optimized for their specific CPUs. The gene pool accumulates hardware-tagged variants of the same logical cell. A new node joining the colony can bootstrap from the gene pool's history — requesting cells that performed well on similar hardware — rather than starting from a naive seed. This compounds over time: the older the colony, the richer the gene pool, the faster new nodes reach maturity.
+The genuinely interesting long-term payoff: once genomes can be compiled to native binaries with no VM overhead, they become directly benchmarkable against hand-written reference implementations on identical hardware — the only fair test of whether evolution actually discovered something better than what a human would write.
 
 ---
 
-## 11. Implementation Roadmap
+## 11. Open Questions
 
-Each step has exactly one deliverable. Do not move to the next step until the deliverable works.
-
-### Step 1 — The bare VM
-Deliverable: a Rust binary that loads a hardcoded byte slice, executes it on a u64 stack, and halts.
-
-```rust
-struct SomaVM {
-    stack: [u64; 1024],
-    sp: usize,           // stack pointer
-    pc: usize,           // program counter into bytecode
-    bytecode: Vec<u8>,
-    running: bool,
-}
-```
-
-Implement the switch loop. Handle only: NOP, HLT, IADD, ISUB, IMUL, JMP, JIF, JNF, CALL, RET. Test with a hardcoded fibonacci bytecode.
-
-### Step 2 — Full codon table
-Deliverable: all 64 opcodes handled in the switch loop. Genome opcodes (0x30–0x37) panic with "not yet implemented" — that's fine. Write one test per opcode.
-
-### Step 3 — Entity file reader
-Deliverable: `soma_load(path) -> SomaEntity` that reads the 64-byte header, validates the magic, and maps the Layer 0 / Layer 1 / Layer 2 regions. Use `mmap` via a raw syscall (SYSCALL opcode isn't wired yet — use Rust's `std::fs` for the loader only, since the loader is part of Layer 0 itself, not the VM).
-
-### Step 4 — Genome memory map
-Deliverable: the genome region is mmap'd as a writable slice. GADDR resolves a node index to a pointer into that slice. LD/ST can read and write node descriptor fields. Write a test that reads opcode field of node 0.
-
-### Step 5 — Ghost Zone
-Deliverable: the Ghost Zone is mapped at its fixed offset. A test entity writes a u64 into the Ghost Zone, runs GFLUSH, exits, reloads the entity, reads the Ghost Zone back. The value persists.
-
-### Step 6 — PCNT
-Deliverable: PCNT opcode calls `rdpmc` (x86-64) or equivalent. counter_id 0 returns CPU cycles. Wrap in a `#[cfg(target_arch)]` block with a stub for non-x86 targets.
-
-### Step 7 — GLOG
-Deliverable: GLOG appends a 24-byte record to the log region. GFLUSH serializes the log (write-to-tmp + rename). Verify that log contents survive a restart.
-
-### Step 8 — GFLUSH atomic write
-Deliverable: GFLUSH does the full write-to-temp + fsync + rename sequence. Kill the process between fsync and rename; verify the original file is intact.
-
-### Step 9 — Mutation engine skeleton (Layer 1)
-Deliverable: a Layer 1 cell (expressed in SOMA IR, interpreted by Layer 0) that reads node 0's opcode via GADDR + LD, increments the generation counter via GMETA, and logs the change via GLOG. No actual mutation yet — just the scaffolding.
-
-### Step 10 — First codon swap
-Deliverable: the mutation engine performs a codon swap on a non-pinned node, evaluates fitness before/after via PCNT, and commits (GFLUSH) or rolls back based on the delta. Write a test entity whose Layer 2 contains an intentionally slow cell. Verify the mutation engine finds and commits a faster equivalent within N invocations.
-
-### Step 11a — Unix domain socket SEND/RECV
-Deliverable: two entities on the same machine communicate via Unix domain sockets. Entity A SPAWNs entity B. A sends a u64 message (type_tag=0x00000100, body=the u64). B receives it, squares it, sends it back. A prints the result. No router yet — hardcode the socket path.
-
-### Step 11b — colony_router + TCP
-Deliverable: a `colony_router` entity (minimal — just routing table + forward logic) is spawned first. Two entities register with it on startup. SEND now goes through the router. Swap Unix sockets for TCP loopback (`127.0.0.1:0`, OS-assigned port registered with the router). Verify the square-and-return test still passes through the router.
-
-### Step 11c — Cross-machine routing **[DEFER until Step 12 is stable]**
-Deliverable: two `colony_router` instances on different machines peer via `PEER_HELLO`. An entity on machine A sends to an entity on machine B. The routers bridge the message transparently. Test with two VMs or two localhost processes on different port namespaces.
-
-### Step 12 — Seed compiler
-Deliverable: `soma build seed.soma -> entity.bin`. The seed compiler reads the minimal seed syntax, generates an initial IR graph, packages it with the Layer 0 binary, and writes a valid entity file. The entity file is executable and runs.
+| # | Question | Status |
+|---|----------|--------|
+| 1 | VM heap design for `LOAD`/`STORE`/`MLOAD`/`MSTORE` — fixed region inside `TVMState`, or external allocation? | Open — leaning fixed-size internal for v1 |
+| 2 | `IN`/`OUT` buffer design — needed before those opcodes can be implemented | Open |
+| 3 | Separate call stack vs reusing the integer stack for `CALL`/`RET` return addresses | Open — current implementation reuses istack; may need revisiting if Layer 1 codons call deeply |
+| 4 | GLOG exact field layout (11 fields, target ~32 bytes) | Open — needs finalising against current opcode/halt_reason additions |
+| 5 | Layer 1 codon table storage and runtime dispatch mechanism | Open — likely a pointer field in `TVMState` referencing a shared, swappable table |
+| 6 | Weight evolution for fitness criteria — when to enable | Deferred until a stable population of working genomes exists |
+| 7 | Dependency-aware (stack-effect-constrained) mutation | Deferred — sub-genome copy and intron-biasing prioritised first |
+| 8 | GENOME_SIZE = 4096 instructions — may need revisiting once real genomes are evolved and their typical length is observed | Open, low urgency |
 
 ---
 
-## 12. Workspace Layout
-
-```
-kyzu/
-  soma/
-    soma-kernel/        ← Layer 0 Rust crate (the VM, no deps)
-      src/
-        main.rs         ← entry point and entity loader
-        vm.rs           ← SomaVM struct and eval loop
-        codon.rs        ← opcode enum and dispatch
-        genome.rs       ← genome mmap, node/edge access
-        glog.rs         ← append-only log
-        gflush.rs       ← atomic write-back
-        pcnt.rs         ← hardware counter access
-        colony.rs       ← SPAWN, SEND, RECV, socket layer
-        router.rs       ← colony_router entity bootstrap
-      tests/
-        *.rs            ← one test file per step above
-    soma-seed/          ← seed compiler (parses .soma text, emits entity files)
-    soma-std/           ← standard Layer 1 genome (mutation engine, JIT, etc.)
-    soma-router/        ← colony_router genome (evolvable, ships as .soma entity)
-    examples/
-      hello.soma        ← simplest possible seed
-      fibonacci.soma    ← canonical test case
-      colony_two.soma   ← two-entity square-and-return test (Step 11a)
-```
-
----
-
-## 13. Open Questions
-
-| # | Question | Status | Impact |
-|---|----------|--------|--------|
-| 1 | GMETA read/write as one opcode or two? | Open | Minor — affects Step 4 |
-| 2 | Colony bus: shared mmap or Unix sockets? | **Resolved: sockets** | Architecture |
-| 3 | Sensory cortex (agent use case): fixed Layer 0 memory map or optional Layer 2 genome extension? | Open | Architecture — decide before Step 11a |
-| 4 | ed25519 for GSIGN: implement from scratch (NIH) or use a well-audited single-file C impl? | Open | NIH purity vs. cryptographic correctness |
-| 5 | Ghost Zone size: 8KB fixed or genome-declared? | **Resolved: 8KB fixed** | Closed |
-| 6 | JIT target: x86-64 only first, or abstract codegen from day one? | Open | Scope |
-| 7 | colony_router discovery: well-known Unix socket path, env var, or hardcoded in genome at SPAWN time? | Open | Required before Step 11b |
-| 8 | RECV timeout: blocking indefinitely, or genome-declared timeout with fallback opcode path? | Open | Minor — affects Step 11a |
-| 9 | Gene pool: dedicated entity or a role any entity can advertise? | Open | Decide before Step 11b |
-| 10 | WAN encryption: plaintext TCP for trusted colonies, TLS for cross-machine? TLS conflicts with NIH | Open | Defer until Step 11c |
-| 11 | Contract schema versioning: add u16 schema_version to node descriptor reserved bytes now, define DSL later? | Open | Cheap to add now; expensive to retrofit |
-| 12 | Colony-level soft limits (message rate, gene offer rate): router genome policy or spec-level convention? | Open | Clarification: these are router genome policy, NOT Layer 0 invariants. Router is evolvable so "invariant" framing is wrong |
-| 13 | SOMA_MAX_* constants: should they be seed-compiler parameters (different values per entity class) or truly global? | Open | Affects Step 2 — decide before writing codon.rs |
-
-Before touching the keyboard, two things: the spec needs four opcode corrections that only become apparent when you try to write actual bytecode, and then we start with Step 1.
-The problem: a stack machine without DUP, OVER, SWAP, and POP can't express recursive fibonacci (or almost anything useful). These four ops have no expression in terms of other ops — you can't implement DUP without DUP. By contrast, IABS is DUP; PUSH 0; LT; JIF; INEG (expressible), COPY/FILL (memcpy/memset) are Layer 1 cells, and YLD is a duplicate of SCHED at 0x3E. Swapping those four out is the right call before a single line of Rust exists.
-Fix codon table: swap YLD→SWAP, IABS→POP, COPY→DUP, FILL→OVER
-
----
-
-## 14. External Review Notes
-
-### Copilot review (v0.3 → v0.4 changes)
-
-Copilot's review identified seven areas. Status of each:
-
-**Incorporated:** Layer 0 structural invariants (§3.1) — genuine gap, now specified as five named constants enforced by the eval loop. Ghost Zone structured header (§7.1) — 64-byte well-known header, 8128 bytes remain emergent. GLOG expansion to 32 bytes (§9.6) — adds `strategy_id` and `snapshot_marker`. Degradation as first-class metric (§9.4) — `regression_budget` genome declaration with conservative mode trigger. Meta-evolution interface (§9.5) — fixed-offset mutation policy table in Layer 1 genome.
-
-**Flagged, not yet incorporated:** Contract schema versioning (Q11) — the right idea, wrong time. Add a u16 schema_version to node descriptor reserved bytes now so the field exists; define the DSL when real contracts need expressing. Colony-level invariants (Q12) — intentionally rejected as "invariants": the router is an evolvable SOMA entity, so anything it enforces is genome policy, not a protocol guarantee. Renamed to "colony soft limits" to avoid the framing confusion.
-
----
-
-*SOMA spec v0.4 — Copilot review incorporated: Layer 0 structural invariants, Ghost Zone header, GLOG 32-byte format with strategy_id and snapshot markers, regression budget, meta-evolution policy table. Supersedes v0.3.*
+*Status document reflects the FreePascal implementation as of the current session. Supersedes the v0.1–v0.4 Rust/graph-based specification, which is preserved in project history for reference but no longer describes the active architecture.*
