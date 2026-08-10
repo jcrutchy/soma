@@ -5,7 +5,7 @@ program soma;
 uses
   soma_types,
   soma_core,
-  soma_hypervisor;
+  soma_hypervisor, soma_mutate;
 
 var
   StateSize: Integer;
@@ -34,12 +34,12 @@ begin
   end else
     WriteLn('OK   TVMState = ', StateSize, ' bytes (64-byte aligned)');
 
-  if GENOME_OFFSET <> 4136 then
+  if GENOME_OFFSET <> 4392 then
   begin
-    WriteLn('FAIL: GENOME_OFFSET = ', GENOME_OFFSET, ' (expected 4136)');
+    WriteLn('FAIL: GENOME_OFFSET = ', GENOME_OFFSET, ' (expected 4392)');
     OK := False;
   end else
-    WriteLn('OK   GENOME_OFFSET = 4136');
+    WriteLn('OK   GENOME_OFFSET = 4392');
 
   if VALID_OPCODE_COUNT <> 67 then
   begin

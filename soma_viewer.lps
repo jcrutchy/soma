@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="soma_viewer.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="17" Y="27"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="viewer_main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ViewerForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="16"/>
+        <CursorPos X="63" Y="33"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="6">
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+      </Position>
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+        <Caret Line="20" Column="69"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_viewer.lpr"/>
+        <Caret Line="27" Column="17"/>
+      </Position>
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+        <Caret Line="77" Column="129" TopLine="25"/>
+      </Position>
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+        <Caret Line="89" Column="35" TopLine="49"/>
+      </Position>
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+        <Caret Line="139" Column="36" TopLine="125"/>
+      </Position>
+      <Position>
+        <Filename Value="viewer_main.pas"/>
+        <Caret Line="140" Column="36" TopLine="126"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>

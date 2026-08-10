@@ -1,12 +1,11 @@
 unit soma_hypervisor;
 
 {$mode Delphi}
-{$ASMMODE INTEL}
 
 interface
 
 uses
-  soma_types, soma_core,
+  soma_types, soma_core, soma_mutate,
   Windows,
   SysUtils;
 
@@ -29,6 +28,7 @@ type
   end;
 
   TPopulation = array[0..POPULATION_SIZE-1] of TGenome;
+  TFitnessArr = array[0..POPULATION_SIZE-1] of Double;
 
   TSOMAShmem = packed record
     magic:           UInt32;
@@ -43,18 +43,21 @@ type
   end;
 
 var
-  Colonies:       array[0..MAX_COLONIES-1] of TColonyThread;
-  Population:     TPopulation;
-  Generation:     UInt64;
-  ColonyCount:    Integer;
-  BestFitness:    Double;
-  AvgFitness:     Double;
-  Running:        Boolean;
-  HyperCS:        TRTLCriticalSection;
-  ShmemHandle:    THandle;
-  Shmem:          ^TSOMAShmem;
-  StartTime:      UInt64;
-  StatusThreadID: TThreadID;
+  Colonies:        array[0..MAX_COLONIES-1] of TColonyThread;
+  Population:       TPopulation;
+  PopFitness:       TFitnessArr;
+  Generation:       UInt64;
+  ColonyCount:      Integer;
+  BestFitness:      Double;
+  AvgFitness:       Double;
+  BestGenomeIdx:    Integer;
+  Running:          Boolean;
+  HyperCS:          TRTLCriticalSection;
+  ShmemHandle:      THandle;
+  Shmem:            ^TSOMAShmem;
+  StartTime:        UInt64;
+  StatusThreadID:   TThreadID;
+  GlobalRNG:        UInt64;
 
 procedure HypervisorInit(colony_count: Integer);
 procedure HypervisorRun;
@@ -140,13 +143,6 @@ end;
 // Genome initialisation
 //------------------------------------------------------------
 
-procedure XorShift64(var rng: UInt64); inline;
-begin
-  rng := rng xor (rng shl 13);
-  rng := rng xor (rng shr 7);
-  rng := rng xor (rng shl 17);
-end;
-
 procedure RandomGenome(var G: TGenome; var rng: UInt64);
 var
   i: Integer;
@@ -162,12 +158,80 @@ begin
 end;
 
 //------------------------------------------------------------
-// Fitness evaluation (stub)
+// Fitness evaluation
 //------------------------------------------------------------
 
+// First real fitness function: reward genomes that run longer without
+// faulting, and that leave a non-trivial amount of work done on the
+// integer stack. This is deliberately crude - just enough signal to
+// prove selection pressure actually does something before the JSON
+// fitness pipeline exists. Replace this once soma_fitness.pas lands.
 function EvaluateFitness(state: PVMState): Double;
+var
+  survival_score: Double;
+  activity_score: Double;
 begin
-  Result := 0.0;
+  // reward instructions executed before halting (proxy: final ip)
+  survival_score := state^.ip / GENOME_SIZE;
+  if survival_score > 1.0 then survival_score := 1.0;
+
+  // reward genomes that did *something* to the integer stack
+  // (isp > 0 means at least one value was produced and not all popped)
+  activity_score := state^.isp / STACK_SIZE;
+  if activity_score > 1.0 then activity_score := 1.0;
+
+  // clean halt (not a fault) gets a flat bonus
+  if (state^.halt_reason = HR_HALT) or (state^.halt_reason = HR_YIELD) then
+    Result := (survival_score * 0.5) + (activity_score * 0.3) + 0.2
+  else
+    Result := (survival_score * 0.5) + (activity_score * 0.3);
+end;
+
+//------------------------------------------------------------
+// Selection and replacement
+//------------------------------------------------------------
+
+// Find the index of the worst-performing genome in the population.
+// Used as the replacement target for new offspring.
+function FindWorstIdx: Integer;
+var
+  i: Integer;
+  worst: Double;
+begin
+  Result := 0;
+  worst  := PopFitness[0];
+  for i := 1 to POPULATION_SIZE-1 do
+    if PopFitness[i] < worst then
+    begin
+      worst  := PopFitness[i];
+      Result := i;
+    end;
+end;
+
+// Simple tournament selection: pick K random candidates, return the
+// fittest of them. Cheap, no need to sort the whole population.
+function TournamentSelect(var rng: UInt64; k: Integer): Integer;
+var
+  i, candidate: Integer;
+  best_idx: Integer;
+  best_fit: Double;
+begin
+  XorShift64(rng);
+  best_idx := rng mod POPULATION_SIZE;
+  best_fit := PopFitness[best_idx];
+
+  for i := 1 to k-1 do
+  begin
+    XorShift64(rng);
+    candidate := rng mod POPULATION_SIZE;
+    if PopFitness[candidate] > best_fit then
+    begin
+      best_fit := PopFitness[candidate];
+      best_idx := candidate;
+    end;
+  end;
+
+  Result := best_idx;
 end;
 
 //------------------------------------------------------------
@@ -179,24 +243,34 @@ var
   col:        ^TColonyThread;
   state:      PVMState;
   t0, t1:     UInt64;
-  genome_idx: Integer;
+  parent_idx: Integer;
+  worst_idx:  Integer;
+  local_rng:  UInt64;
+  offspring:  TGenome;
 begin
   col   := param;
   state := col^.state;
 
-  state^.rng_state := UInt64(col^.colony_id + 1) * $6C62272E07BB0142;
+  local_rng := UInt64(col^.colony_id + 1) * $6C62272E07BB0142;
+  state^.rng_state := local_rng;
 
   while Running do
   begin
+    // --- select a parent and produce offspring under lock ---
     EnterCriticalSection(HyperCS);
-    genome_idx := col^.colony_id mod POPULATION_SIZE;
-    state^.genome := Population[genome_idx];
+    parent_idx := TournamentSelect(local_rng, 4);
+    offspring  := Population[parent_idx];
     LeaveCriticalSection(HyperCS);
 
-    state^.ip          := 0;
-    state^.isp         := 0;
-    state^.fsp         := 0;
-    state^.halt_reason := HR_NONE;
+    // mutate outside the lock - offspring is a local copy
+    MutateGenome(offspring, Population, local_rng);
+
+    // --- evaluate offspring ---
+    state^.genome       := offspring;
+    state^.ip           := 0;
+    state^.isp          := 0;
+    state^.fsp          := 0;
+    state^.halt_reason  := HR_NONE;
 
     t0 := ReadTSC;
     Execute(state^);
@@ -206,7 +280,14 @@ begin
     col^.fitness      := EvaluateFitness(state);
     col^.generation    := Generation;
 
+    // --- replace worst-in-population if offspring is fitter ---
     EnterCriticalSection(HyperCS);
+    worst_idx := FindWorstIdx;
+    if col^.fitness > PopFitness[worst_idx] then
+    begin
+      Population[worst_idx] := offspring;
+      PopFitness[worst_idx] := col^.fitness;
+    end;
     Inc(Generation);
     LeaveCriticalSection(HyperCS);
   end;
@@ -215,12 +296,13 @@ begin
 end;
 
 //------------------------------------------------------------
-// Status thread - prints stats, updates shared memory
+// Status thread
 //------------------------------------------------------------
 
 function StatusThreadProc(param: Pointer): PtrInt;
 var
   i: Integer;
+  sum: Double;
 begin
   while Running do
   begin
@@ -230,21 +312,25 @@ begin
     UpdateSharedMemory;
 
     EnterCriticalSection(HyperCS);
-    BestFitness := 0.0;
-    AvgFitness  := 0.0;
-    for i := 0 to ColonyCount-1 do
+    BestFitness   := PopFitness[0];
+    BestGenomeIdx := 0;
+    sum := 0.0;
+    for i := 0 to POPULATION_SIZE-1 do
     begin
-      AvgFitness := AvgFitness + Colonies[i].fitness;
-      if Colonies[i].fitness > BestFitness then
-        BestFitness := Colonies[i].fitness;
+      sum := sum + PopFitness[i];
+      if PopFitness[i] > BestFitness then
+      begin
+        BestFitness   := PopFitness[i];
+        BestGenomeIdx := i;
+      end;
     end;
-    if ColonyCount > 0 then
-      AvgFitness := AvgFitness / ColonyCount;
+    AvgFitness := sum / POPULATION_SIZE;
     LeaveCriticalSection(HyperCS);
 
     WriteLn('Gen: ', Generation,
             '  Best: ', BestFitness:6:4,
-            '  Avg: ',  AvgFitness:6:4);
+            '  Avg: ',  AvgFitness:6:4,
+            '  (genome #', BestGenomeIdx, ')');
   end;
   Result := 0;
 end;
@@ -255,8 +341,7 @@ end;
 
 procedure HypervisorInit(colony_count: Integer);
 var
-  i:   Integer;
-  rng: UInt64;
+  i: Integer;
 begin
   if colony_count > MAX_COLONIES then colony_count := MAX_COLONIES;
   if colony_count < 1 then colony_count := 1;
@@ -279,9 +364,12 @@ begin
     FillChar(Colonies[i].state^, SizeOf(TVMState), 0);
   end;
 
-  rng := UInt64($CAFE1234DEADBEEF);
+  GlobalRNG := UInt64($CAFE1234DEADBEEF);
   for i := 0 to POPULATION_SIZE-1 do
-    RandomGenome(Population[i], rng);
+  begin
+    RandomGenome(Population[i], GlobalRNG);
+    PopFitness[i] := 0.0;
+  end;
 
   WriteLn('SOMA Hypervisor initialised');
   WriteLn('  Colonies  : ', ColonyCount);
@@ -314,7 +402,6 @@ begin
   WriteLn('Hypervisor running. Press Enter to stop...');
   Readln;
 
-  // signal all threads to stop
   Running := False;
 end;
 
@@ -324,14 +411,12 @@ var
 begin
   WriteLn('Stopping hypervisor...');
 
-  // wait for status thread
   if StatusThreadID <> 0 then
   begin
     WaitForSingleObject(StatusThreadID, 2000);
     CloseHandle(StatusThreadID);
   end;
 
-  // wait for all colony threads
   for i := 0 to ColonyCount-1 do
   begin
     if Colonies[i].active and (Colonies[i].thread_id <> 0) then
@@ -354,11 +439,13 @@ end;
 initialization
   FillChar(Colonies,   SizeOf(Colonies),   0);
   FillChar(Population, SizeOf(Population), 0);
+  FillChar(PopFitness, SizeOf(PopFitness), 0);
   Running        := False;
   ShmemHandle    := 0;
   Shmem          := nil;
   StartTime      := 0;
   Generation     := 0;
   StatusThreadID := 0;
+  BestGenomeIdx  := 0;
 
 end.

@@ -9,7 +9,14 @@ TC_$SOMA_TYPES_$$_VALID_OPCODES:
 	.short	96,97,98,99,100,112,113,114,115,116,117,118,119,128,129,130,131,132,133,144,145,160,161,162,163
 	.short	164,165
 # [soma_types.pas]
-# [182] HR_NONE         = 0;
+# [224] NEURAL_OPCODE_COUNT = 7;
+
+.section .data.n_TC_$SOMA_TYPES_$$_NEURAL_OPCODES,"d"
+	.balign 2
+.globl	TC_$SOMA_TYPES_$$_NEURAL_OPCODES
+TC_$SOMA_TYPES_$$_NEURAL_OPCODES:
+	.short	176,177,178,179,180,181,182
+# [231] HR_NONE         = 0;
 # End asmlist al_typedconsts
 # Begin asmlist al_rtti
 
@@ -18,7 +25,7 @@ TC_$SOMA_TYPES_$$_VALID_OPCODES:
 .globl	INIT_$SOMA_TYPES_$$_TINSTRUCTION
 INIT_$SOMA_TYPES_$$_TINSTRUCTION:
 	.byte	13,12
-# [246] 
+# [344] 
 	.ascii	"TInstruction"
 	.quad	0
 	.long	8
@@ -71,27 +78,17 @@ INIT_$SOMA_TYPES_$$_TVMSTATE:
 	.byte	13,8
 	.ascii	"TVMState"
 	.quad	0
-	.long	36928
+	.long	37184
 	.quad	0,0
 	.long	0
-
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000004,"d"
-	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000004
-RTTI_$SOMA_TYPES_$$_def00000004:
-	.byte	12,0
-	.quad	2048,256
-	.quad	RTTI_$SYSTEM_$$_INT64$indirect
-	.byte	1
-	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
 
 .section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000005,"d"
 	.balign 8
 .globl	RTTI_$SOMA_TYPES_$$_def00000005
 RTTI_$SOMA_TYPES_$$_def00000005:
 	.byte	12,0
-	.quad	2048,256
-	.quad	RTTI_$SYSTEM_$$_DOUBLE$indirect
+	.quad	256,256
+	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
 	.byte	1
 	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
 
@@ -100,7 +97,27 @@ RTTI_$SOMA_TYPES_$$_def00000005:
 .globl	RTTI_$SOMA_TYPES_$$_def00000006
 RTTI_$SOMA_TYPES_$$_def00000006:
 	.byte	12,0
-	.quad	24,24
+	.quad	2048,256
+	.quad	RTTI_$SYSTEM_$$_INT64$indirect
+	.byte	1
+	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
+
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000007,"d"
+	.balign 8
+.globl	RTTI_$SOMA_TYPES_$$_def00000007
+RTTI_$SOMA_TYPES_$$_def00000007:
+	.byte	12,0
+	.quad	2048,256
+	.quad	RTTI_$SYSTEM_$$_DOUBLE$indirect
+	.byte	1
+	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
+
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000008,"d"
+	.balign 8
+.globl	RTTI_$SOMA_TYPES_$$_def00000008
+RTTI_$SOMA_TYPES_$$_def00000008:
+	.byte	12,0
+	.quad	16,16
 	.quad	RTTI_$SYSTEM_$$_BYTE$indirect
 	.byte	1
 	.quad	RTTI_$SYSTEM_$$_SHORTINT$indirect
@@ -112,25 +129,29 @@ RTTI_$SOMA_TYPES_$$_TVMSTATE:
 	.byte	13,8
 	.ascii	"TVMState"
 	.quad	INIT_$SOMA_TYPES_$$_TVMSTATE
-	.long	36928,9
-	.quad	RTTI_$SOMA_TYPES_$$_def00000004$indirect
-	.quad	0
+	.long	37184,11
 	.quad	RTTI_$SOMA_TYPES_$$_def00000005$indirect
-	.quad	2048
-	.quad	RTTI_$SYSTEM_$$_INT64$indirect
-	.quad	4096
-	.quad	RTTI_$SYSTEM_$$_INT64$indirect
-	.quad	4104
-	.quad	RTTI_$SYSTEM_$$_INT64$indirect
-	.quad	4112
-	.quad	RTTI_$SYSTEM_$$_QWORD$indirect
-	.quad	4120
-	.quad	RTTI_$SYSTEM_$$_QWORD$indirect
-	.quad	4128
-	.quad	RTTI_$SOMA_TYPES_$$_TGENOME$indirect
-	.quad	4136
+	.quad	0
 	.quad	RTTI_$SOMA_TYPES_$$_def00000006$indirect
-	.quad	36904
+	.quad	256
+	.quad	RTTI_$SOMA_TYPES_$$_def00000007$indirect
+	.quad	2304
+	.quad	RTTI_$SYSTEM_$$_INT64$indirect
+	.quad	4352
+	.quad	RTTI_$SYSTEM_$$_INT64$indirect
+	.quad	4360
+	.quad	RTTI_$SYSTEM_$$_INT64$indirect
+	.quad	4368
+	.quad	RTTI_$SYSTEM_$$_QWORD$indirect
+	.quad	4376
+	.quad	RTTI_$SYSTEM_$$_QWORD$indirect
+	.quad	4384
+	.quad	RTTI_$SOMA_TYPES_$$_TGENOME$indirect
+	.quad	4392
+	.quad	RTTI_$SYSTEM_$$_QWORD$indirect
+	.quad	37160
+	.quad	RTTI_$SOMA_TYPES_$$_def00000008$indirect
+	.quad	37168
 
 .section .rodata.n_INIT_$SOMA_TYPES_$$_TFITNESSRESULT,"d"
 	.balign 8
@@ -143,20 +164,20 @@ INIT_$SOMA_TYPES_$$_TFITNESSRESULT:
 	.quad	0,0
 	.long	0
 
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000008,"d"
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def0000000A,"d"
 	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000008
-RTTI_$SOMA_TYPES_$$_def00000008:
+.globl	RTTI_$SOMA_TYPES_$$_def0000000A
+RTTI_$SOMA_TYPES_$$_def0000000A:
 	.byte	12,0
 	.quad	64,8
 	.quad	RTTI_$SYSTEM_$$_DOUBLE$indirect
 	.byte	1
 	.quad	RTTI_$SYSTEM_$$_SHORTINT$indirect
 
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000009,"d"
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def0000000B,"d"
 	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000009
-RTTI_$SOMA_TYPES_$$_def00000009:
+.globl	RTTI_$SOMA_TYPES_$$_def0000000B
+RTTI_$SOMA_TYPES_$$_def0000000B:
 	.byte	12,0
 	.quad	32,32
 	.quad	RTTI_$SYSTEM_$$_CHAR$indirect
@@ -173,9 +194,9 @@ RTTI_$SOMA_TYPES_$$_TFITNESSRESULT:
 	.long	112,5
 	.quad	RTTI_$SYSTEM_$$_DOUBLE$indirect
 	.quad	0
-	.quad	RTTI_$SOMA_TYPES_$$_def00000008$indirect
+	.quad	RTTI_$SOMA_TYPES_$$_def0000000A$indirect
 	.quad	8
-	.quad	RTTI_$SOMA_TYPES_$$_def00000009$indirect
+	.quad	RTTI_$SOMA_TYPES_$$_def0000000B$indirect
 	.quad	72
 	.quad	RTTI_$SYSTEM_$$_WORD$indirect
 	.quad	104
@@ -236,12 +257,6 @@ RTTI_$SOMA_TYPES_$$_TGENOME$indirect:
 INIT_$SOMA_TYPES_$$_TVMSTATE$indirect:
 	.quad	INIT_$SOMA_TYPES_$$_TVMSTATE
 
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000004,"d"
-	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000004$indirect
-RTTI_$SOMA_TYPES_$$_def00000004$indirect:
-	.quad	RTTI_$SOMA_TYPES_$$_def00000004
-
 .section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000005,"d"
 	.balign 8
 .globl	RTTI_$SOMA_TYPES_$$_def00000005$indirect
@@ -253,6 +268,18 @@ RTTI_$SOMA_TYPES_$$_def00000005$indirect:
 .globl	RTTI_$SOMA_TYPES_$$_def00000006$indirect
 RTTI_$SOMA_TYPES_$$_def00000006$indirect:
 	.quad	RTTI_$SOMA_TYPES_$$_def00000006
+
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000007,"d"
+	.balign 8
+.globl	RTTI_$SOMA_TYPES_$$_def00000007$indirect
+RTTI_$SOMA_TYPES_$$_def00000007$indirect:
+	.quad	RTTI_$SOMA_TYPES_$$_def00000007
+
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000008,"d"
+	.balign 8
+.globl	RTTI_$SOMA_TYPES_$$_def00000008$indirect
+RTTI_$SOMA_TYPES_$$_def00000008$indirect:
+	.quad	RTTI_$SOMA_TYPES_$$_def00000008
 
 .section .rodata.n_RTTI_$SOMA_TYPES_$$_TVMSTATE,"d"
 	.balign 8
@@ -266,17 +293,17 @@ RTTI_$SOMA_TYPES_$$_TVMSTATE$indirect:
 INIT_$SOMA_TYPES_$$_TFITNESSRESULT$indirect:
 	.quad	INIT_$SOMA_TYPES_$$_TFITNESSRESULT
 
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000008,"d"
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def0000000A,"d"
 	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000008$indirect
-RTTI_$SOMA_TYPES_$$_def00000008$indirect:
-	.quad	RTTI_$SOMA_TYPES_$$_def00000008
+.globl	RTTI_$SOMA_TYPES_$$_def0000000A$indirect
+RTTI_$SOMA_TYPES_$$_def0000000A$indirect:
+	.quad	RTTI_$SOMA_TYPES_$$_def0000000A
 
-.section .rodata.n_RTTI_$SOMA_TYPES_$$_def00000009,"d"
+.section .rodata.n_RTTI_$SOMA_TYPES_$$_def0000000B,"d"
 	.balign 8
-.globl	RTTI_$SOMA_TYPES_$$_def00000009$indirect
-RTTI_$SOMA_TYPES_$$_def00000009$indirect:
-	.quad	RTTI_$SOMA_TYPES_$$_def00000009
+.globl	RTTI_$SOMA_TYPES_$$_def0000000B$indirect
+RTTI_$SOMA_TYPES_$$_def0000000B$indirect:
+	.quad	RTTI_$SOMA_TYPES_$$_def0000000B
 
 .section .rodata.n_RTTI_$SOMA_TYPES_$$_TFITNESSRESULT,"d"
 	.balign 8

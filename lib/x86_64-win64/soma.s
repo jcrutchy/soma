@@ -29,7 +29,7 @@ main:
 	movb	$1,%dil
 # Var StateSize located in register esi
 # [16] StateSize := SizeOf(TVMState);
-	movl	$36928,%esi
+	movl	$37184,%esi
 # [18] WriteLn('SOMA - Self Organizing Machine Architecture');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -133,7 +133,7 @@ main:
 	call	fpc_writeln_end
 	call	fpc_iocheck
 .Lj5:
-# [42] WriteLn('OK   GENOME_OFFSET = 4136');
+# [42] WriteLn('OK   GENOME_OFFSET = 4392');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA$_Ld9(%rip),%r8
@@ -280,7 +280,9 @@ FPC_THREADVARTABLES:
 	.balign 8
 .globl	FPC_RESOURCESTRINGTABLES
 FPC_RESOURCESTRINGTABLES:
-	.quad	1
+	.quad	2
+	.quad	RESSTR_$MATH_$$_START$indirect
+	.quad	RESSTR_$MATH_$$_END$indirect
 	.quad	RESSTR_$SYSCONST_$$_START$indirect
 	.quad	RESSTR_$SYSCONST_$$_END$indirect
 
@@ -367,7 +369,7 @@ _$SOMA$_Ld8:
 	.balign 8
 .globl	_$SOMA$_Ld9
 _$SOMA$_Ld9:
-	.ascii	"\031OK   GENOME_OFFSET = 4136\000"
+	.ascii	"\031OK   GENOME_OFFSET = 4392\000"
 
 .section .rodata.n__$SOMA$_Ld10,"d"
 	.balign 8

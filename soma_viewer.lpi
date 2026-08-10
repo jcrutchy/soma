@@ -4,18 +4,15 @@
     <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
-      <Flags>
-        <MainUnitHasCreateFormStatements Value="False"/>
-        <MainUnitHasTitleStatement Value="False"/>
-        <MainUnitHasScaledStatement Value="False"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="soma"/>
+      <Title Value="soma_viewer"/>
+      <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
+      <Icon Value="0"/>
     </General>
     <BuildModes>
       <Item Name="Default" Default="True"/>
@@ -29,29 +26,22 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="TAChartLazarusPkg"/>
+      </Item>
+      <Item>
         <PackageName Value="LCL"/>
       </Item>
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="soma.lpr"/>
+        <Filename Value="soma_viewer.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="soma_core.pas"/>
+        <Filename Value="viewer_main.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="soma_types.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="soma_hypervisor.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="soma_mutate.pas"/>
-        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ViewerForm"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -59,35 +49,22 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="soma"/>
+      <Filename Value="soma_viewer"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Parsing>
-      <Style Value="1"/>
-      <SyntaxOptions>
-        <SyntaxMode Value="Delphi"/>
-      </SyntaxOptions>
-    </Parsing>
-    <CodeGeneration>
-      <TargetCPU Value="x86_64"/>
-      <TargetOS Value="win64"/>
-      <Optimizations>
-        <OptimizationLevel Value="3"/>
-      </Optimizations>
-    </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
-        <RunWithoutDebug Value="True"/>
-        <StripSymbols Value="True"/>
+        <DebugInfoType Value="dsDwarf3"/>
       </Debugging>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
     </Linking>
-    <Other>
-      <CustomOptions Value="-al"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

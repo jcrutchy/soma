@@ -10,25 +10,48 @@ const
   STACK_SIZE  = 256;
 
   // TVMState field offsets for asm use
-  ISTACK_OFFSET     = 0;
-  FSTACK_OFFSET     = STACK_SIZE * 8;                    // 2048
-  ISP_OFFSET        = FSTACK_OFFSET + (STACK_SIZE * 8);  // 4096
-  FSP_OFFSET        = ISP_OFFSET + 8;                    // 4104
-  IP_OFFSET         = FSP_OFFSET + 8;                    // 4112
-  RNG_OFFSET        = IP_OFFSET + 8;                     // 4120
-  HALT_REASON_OFFSET= RNG_OFFSET + 8;                    // 4128
-  GENOME_OFFSET     = HALT_REASON_OFFSET + 8;            // 4136
+  //
+  // STACK_GUARD_BYTES: istack is the FIRST field in TVMState, with nothing
+  // preceding it in memory. Several ops (e.g. @ADD) read operands using
+  // offsets relative to CURRENT isp *before* decrementing it -- with
+  // isp=0 (a legitimately reachable, clamped state), that means reading
+  // at [rbx + ISTACK_OFFSET - 16], i.e. genuinely before the struct's own
+  // memory. The per-loop-iteration isp/fsp clamp (see @Loop) only bounds
+  // drift *between* instructions; it does nothing for a single
+  // instruction's transient negative-relative read/write with isp/fsp
+  // already at the floor. For a global TVMState, "before the struct"
+  // is some OTHER global variable, not padding -- confirmed by testing:
+  // a genome that hit an istack op at isp=0 silently corrupted a
+  // completely unrelated array that the linker happened to place
+  // immediately before it in memory. FSTACK_OFFSET already has 2048
+  // bytes of istack sitting in front of it, comfortably covering any
+  // single op's worst-case excursion (widest is the neural ops at
+  // 2*MAX_NN_WIDTH = 16 slots), so only istack's exposed leading edge
+  // needs an explicit guard.
+  STACK_GUARD_BYTES = 256;  // 32 Int64 slots of headroom -- generous
+                             // relative to any single op's actual excursion
+  ISTACK_OFFSET     = STACK_GUARD_BYTES;
+  FSTACK_OFFSET     = ISTACK_OFFSET + (STACK_SIZE * 8);   // 2304
+  ISP_OFFSET        = FSTACK_OFFSET + (STACK_SIZE * 8);   // 4352
+  FSP_OFFSET        = ISP_OFFSET + 8;                     // 4360
+  IP_OFFSET         = FSP_OFFSET + 8;                     // 4368
+  RNG_OFFSET        = IP_OFFSET + 8;                      // 4376
+  HALT_REASON_OFFSET= RNG_OFFSET + 8;                     // 4384
+  GENOME_OFFSET     = HALT_REASON_OFFSET + 8;             // 4392
+  EXEC_COUNT_OFFSET = GENOME_OFFSET + (GENOME_SIZE * 8);  // 4392 + 32768 = 37160
 
   // TVMState total size for padding calculation
-  BASE_SIZE = (STACK_SIZE * 8)     // istack    2048
+  BASE_SIZE = STACK_GUARD_BYTES  // guard      256
+            + (STACK_SIZE * 8)     // istack    2048
             + (STACK_SIZE * 8)     // fstack    2048
             + 8                    // isp          8
             + 8                    // fsp          8
             + 8                    // ip           8
             + 8                    // rng_state    8
             + 8                    // halt_reason  8
-            + (GENOME_SIZE * 8);   // genome   32768
-                                   // total    36864
+            + (GENOME_SIZE * 8)    // genome   32768
+            + 8;                   // exec_count   8
+                                   // total    37160
   N_PAD = (64 - (BASE_SIZE mod 64)) mod 64;
 
   // Opcode space boundaries
@@ -138,7 +161,22 @@ const
   OP_YIELD    = $00A3;
   OP_IN       = $00A4;
   OP_OUT      = $00A5;
-  // $A6-$FF reserved
+  // $A6-$AF reserved
+
+  // $B0-$B6 Vector/matrix/neural utility primitives
+  // These are hand-crafted Layer 0 seed functionality -- utilities available
+  // to evolved genomes, not evolved codons themselves (Layer 1 remains
+  // reserved for promoted sequences). Width-parametrised via `imm` rather
+  // than fixed-size opcode variants (VDOT2/VDOT3/VDOT4 etc.) so the width
+  // is itself something the mutation engine can explore.
+  OP_VDOT     = $00B0;  // imm=N: pop vecA[N],vecB[N] -> push dot product (scalar)
+  OP_MATVEC   = $00B1;  // imm=N: pop mat[N*N] (row-major), vec[N] -> push vec[N]
+  OP_MATINV   = $00B2;  // imm=N: pop mat[N*N] -> push mat[N*N] inverse (halts on singular)
+  OP_FMA      = $00B3;  // pop acc,w,x -> push acc + w*x   (weighted-sum accumulate)
+  OP_SIGMOID  = $00B4;  // pop x -> push 1/(1+exp(-x))
+  OP_TANH     = $00B5;  // pop x -> push tanh(x)
+  OP_RELU     = $00B6;  // pop x -> push max(x,0)
+  // $B7-$FF reserved
 
   // Valid opcode table for mutation engine and genome initialisation
   // All 63 implemented Layer 0 opcodes in a flat array
@@ -178,6 +216,17 @@ const
     OP_IN,   OP_OUT
   );
 
+  // Neural/matrix seed primitives -- deliberately kept OUT of VALID_OPCODES
+  // for now. They're implemented and dispatchable (a genome can use them),
+  // but not yet in the random-genome / mutation pool, so existing runs are
+  // completely unaffected until you decide to fold this into
+  // VALID_OPCODES (or sample it separately at a chosen rate).
+  NEURAL_OPCODE_COUNT = 7;
+  NEURAL_OPCODES: array[0..NEURAL_OPCODE_COUNT-1] of UInt16 = (
+    OP_VDOT, OP_MATVEC, OP_MATINV, OP_FMA,
+    OP_SIGMOID, OP_TANH, OP_RELU
+  );
+
   // Halt reason codes - written to halt_reason field before @Exit
   HR_NONE         = 0;
   HR_HALT         = 1;  // OP_HALT executed
@@ -187,6 +236,52 @@ const
   HR_FDIV_ZERO    = 5;  // float divide by zero
   HR_UNUSED       = 6;  // hit @UNUSED opcode
   HR_HIGHER_LAYER = 7;  // Layer 1+ opcode not yet implemented
+  HR_SINGULAR_MATRIX = 8;  // OP_MATINV on a non-invertible matrix
+  HR_BAD_OPERAND      = 9; // OP_VDOT/MATVEC/MATINV with imm outside [1, MAX_NN_WIDTH]
+  HR_INSUFFICIENT_STACK = 12; // OP_VDOT/MATVEC/MATINV: N valid, but fsp
+                              // didn't have N (or N*N, or N*N+N) elements
+                              // available -- the computed operand base
+                              // would be negative. Caught explicitly here
+                              // rather than trusted to STACK_GUARD_BYTES:
+                              // MATVEC's window is N*N+N doubles, which at
+                              // MAX_NN_WIDTH reaches 576 bytes -- wider
+                              // than the 256-byte guard region, so a
+                              // floor-clamped fsp=0 followed by a wide
+                              // MATVEC would otherwise compute an address
+                              // outside the allocated TVMState block
+                              // entirely (confirmed: this is what crashed).
+  HR_INT_OVERFLOW = 11; // OP_DIV/OP_MOD: dividend = Int64.MinValue and
+                        // divisor = -1. x86 `idiv` traps on this (the
+                        // true quotient, +2^63, doesn't fit in Int64) --
+                        // a genuinely different failure mode from divide-
+                        // by-zero, and reachable organically: a long
+                        // random genome doing enough arithmetic can
+                        // produce MinValue on the stack without any
+                        // deliberate construction (confirmed by fuzzing).
+  HR_CYCLE_LIMIT      = 10; // exec_count exceeded MAX_EXEC_CYCLES (see below)
+
+  // Clamp for the width-parametrised neural/matrix ops (OP_VDOT, OP_MATVEC,
+  // OP_MATINV). Unlike the rest of Layer 0, these consume an operand count
+  // that SCALES with a mutable field (imm), so an un-clamped N is a
+  // materially different risk than the rest of the VM: existing ops always
+  // touch a fixed 1-2 stack slots, so a corrupted isp/fsp still only
+  // corrupts within that colony's own (self-contained, 64-byte-padded)
+  // TVMState block. OP_MATINV additionally borrows scratch space off the
+  // *native* call stack (see Soma_MatInverse) -- an unclamped N there
+  // risks a real stack overflow of the colony thread itself, which is not
+  // self-contained the way in-VM-state corruption is. 8 gives an 8x8
+  // matrix (64 doubles) with room to spare inside the 256-slot float stack.
+  MAX_NN_WIDTH = 8;
+
+  // Relative jumps (JMP/JZ/JNZ/CALL) can form a loop that stays entirely
+  // within [0, GENOME_SIZE) forever -- the ip-bounds check alone doesn't
+  // catch that (confirmed: a random genome did exactly this and spun
+  // indefinitely). This is the "energy/execution quanta" concept from
+  // the digital-evolution literature: a hard cycle budget per run, after
+  // which execution is halted gracefully (HR_CYCLE_LIMIT) rather than
+  // running forever. 16x genome length gives real loops room to do
+  // useful repeated work while still bounding worst-case runtime.
+  MAX_EXEC_CYCLES = GENOME_SIZE * 16;
 
 type
   TInstruction = packed record
@@ -199,6 +294,7 @@ type
   TGenome = array[0..(GENOME_SIZE-1)] of TInstruction;
 
   TVMState = packed record
+    guard:       array[0..(STACK_GUARD_BYTES-1)] of Byte; // see STACK_GUARD_BYTES
     istack:      array[0..(STACK_SIZE-1)] of Int64;   // integer stack
     fstack:      array[0..(STACK_SIZE-1)] of Double;  // float stack
     isp:         Int64;                               // integer stack pointer
@@ -207,6 +303,7 @@ type
     rng_state:   UInt64;                              // xorshift64 rng seed
     halt_reason: UInt64;                              // why execution stopped
     genome:      TGenome;                             // program genome
+    exec_count:  UInt64;                              // instructions dispatched this run
     {$IF N_PAD > 0}
     pad:         array[0..(N_PAD-1)] of Byte;         // 64-byte cache line pad
     {$ENDIF}
@@ -230,15 +327,16 @@ implementation
 
 initialization
   Assert(SizeOf(TInstruction) = 8,              'TInstruction size mismatch');
-  Assert(ISTACK_OFFSET      = 0,                'ISTACK_OFFSET mismatch');
-  Assert(FSTACK_OFFSET      = 2048,             'FSTACK_OFFSET mismatch');
-  Assert(ISP_OFFSET         = 4096,             'ISP_OFFSET mismatch');
-  Assert(FSP_OFFSET         = 4104,             'FSP_OFFSET mismatch');
-  Assert(IP_OFFSET          = 4112,             'IP_OFFSET mismatch');
-  Assert(RNG_OFFSET         = 4120,             'RNG_OFFSET mismatch');
-  Assert(HALT_REASON_OFFSET = 4128,             'HALT_REASON_OFFSET mismatch');
-  Assert(GENOME_OFFSET      = 4136,             'GENOME_OFFSET mismatch');
-  Assert(BASE_SIZE          = 36864,            'BASE_SIZE mismatch');
+  Assert(ISTACK_OFFSET      = 256,              'ISTACK_OFFSET mismatch');
+  Assert(FSTACK_OFFSET      = 2304,             'FSTACK_OFFSET mismatch');
+  Assert(ISP_OFFSET         = 4352,             'ISP_OFFSET mismatch');
+  Assert(FSP_OFFSET         = 4360,             'FSP_OFFSET mismatch');
+  Assert(IP_OFFSET          = 4368,             'IP_OFFSET mismatch');
+  Assert(RNG_OFFSET         = 4376,             'RNG_OFFSET mismatch');
+  Assert(HALT_REASON_OFFSET = 4384,             'HALT_REASON_OFFSET mismatch');
+  Assert(GENOME_OFFSET      = 4392,             'GENOME_OFFSET mismatch');
+  Assert(EXEC_COUNT_OFFSET  = 37160,            'EXEC_COUNT_OFFSET mismatch');
+  Assert(BASE_SIZE          = 37168,            'BASE_SIZE mismatch');
   Assert(SizeOf(TVMState)   = BASE_SIZE + N_PAD,'TVMState size mismatch');
   Assert(VALID_OPCODE_COUNT = 67,               'VALID_OPCODE_COUNT mismatch');
 
