@@ -552,15 +552,15 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	jmp	.Lj65
 	.balign 8,0x90
 .Lj64:
-# [260] EnterCriticalSection(HyperCS);
+# [277] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
-# [261] parent_idx := TournamentSelect(local_rng, 4);
+# [278] parent_idx := TournamentSelect(local_rng, 4);
 	leaq	32(%rsp),%rcx
 	movl	$4,%edx
 	call	SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT
 	movl	%eax,%r12d
-# [262] offspring  := Population[parent_idx];
+# [279] offspring  := Population[parent_idx];
 	andl	%eax,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
@@ -569,58 +569,58 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	movl	$4096,%ecx
 	rep
 	movsq
-# [263] LeaveCriticalSection(HyperCS);
-	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
-	call	_$dll$kernel32$LeaveCriticalSection
-# [266] MutateGenome(offspring, Population, local_rng);
+# [280] MutateGenome(offspring, Population, local_rng);
 	leaq	32(%rsp),%r9
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
 	leaq	40(%rsp),%rcx
 	movl	$127,%r8d
 	call	SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD
-# [269] state^.genome       := offspring;
+# [281] LeaveCriticalSection(HyperCS);
+	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
+	call	_$dll$kernel32$LeaveCriticalSection
+# [284] state^.genome       := offspring;
 	leaq	4392(%r15),%rdi
 	leaq	40(%rsp),%rsi
 	movl	$4096,%ecx
 	rep
 	movsq
-# [270] state^.ip           := 0;
+# [285] state^.ip           := 0;
 	movq	$0,4368(%r15)
-# [271] state^.isp          := 0;
+# [286] state^.isp          := 0;
 	movq	$0,4352(%r15)
-# [272] state^.fsp          := 0;
+# [287] state^.fsp          := 0;
 	movq	$0,4360(%r15)
-# [273] state^.halt_reason  := HR_NONE;
+# [288] state^.halt_reason  := HR_NONE;
 	movq	$0,4384(%r15)
-# [275] t0 := ReadTSC;
+# [290] t0 := ReadTSC;
 	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	movq	%rax,%r14
-# [276] Execute(state^);
+# [291] Execute(state^);
 	movq	%r15,%rcx
 	call	SOMA_CORE_$$_EXECUTE$TVMSTATE
-# [277] t1 := ReadTSC;
+# [292] t1 := ReadTSC;
 	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	movq	%rax,%r13
-# [279] col^.exec_cycles := t1 - t0;
+# [294] col^.exec_cycles := t1 - t0;
 	subq	%r14,%rax
 	movq	32808(%rsp),%rdx
 	movq	%rax,40(%rdx)
-# [280] col^.fitness      := EvaluateFitness(state);
+# [295] col^.fitness      := EvaluateFitness(state);
 	movq	%r15,%rcx
 	call	SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE
 	movq	32808(%rsp),%rdx
 	movsd	%xmm0,32(%rdx)
-# [281] col^.generation    := Generation;
+# [296] col^.generation    := Generation;
 	movq	U_$SOMA_HYPERVISOR_$$_GENERATION(%rip),%rdx
 	movq	32808(%rsp),%rax
 	movq	%rdx,48(%rax)
-# [284] EnterCriticalSection(HyperCS);
+# [299] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
-# [285] worst_idx := FindWorstIdx;
+# [300] worst_idx := FindWorstIdx;
 	call	SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT
 	movl	%eax,%ebx
-# [286] if col^.fitness > PopFitness[worst_idx] then
+# [301] if col^.fitness > PopFitness[worst_idx] then
 	movl	%ebx,%edx
 	movq	32808(%rsp),%rax
 	movsd	32(%rax),%xmm0
@@ -628,7 +628,7 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	comisd	(%rax,%rdx,8),%xmm0
 	jp	.Lj68
 	jna	.Lj68
-# [288] Population[worst_idx] := offspring;
+# [303] Population[worst_idx] := offspring;
 	movl	%ebx,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
@@ -637,7 +637,7 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	movl	$4096,%ecx
 	rep
 	movsq
-# [289] PopFitness[worst_idx] := col^.fitness;
+# [304] PopFitness[worst_idx] := col^.fitness;
 	movl	%ebx,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rcx
 	movq	32808(%rsp),%rdx
@@ -645,18 +645,18 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	movq	%r8,(%rcx,%rax,8)
 	.balign 4,0x90
 .Lj68:
-# [291] Inc(Generation);
+# [306] Inc(Generation);
 	addq	$1,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-# [292] LeaveCriticalSection(HyperCS);
+# [307] LeaveCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$LeaveCriticalSection
 .Lj65:
 	cmpb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
 	jne	.Lj64
 # Var $result located in register rax
-# [295] Result := 0;
+# [310] Result := 0;
 	xorl	%eax,%eax
-# [296] end;
+# [311] end;
 	nop
 	leaq	32816(%rsp),%rsp
 	popq	%r15
@@ -675,7 +675,7 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 .Lc29:
 .seh_proc SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64
-# [306] begin
+# [321] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -690,66 +690,66 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 # Var i located in register ebx
 # Var sum located in register xmm6
 # Var param located in register rcx
-# [307] while Running do
+# [322] while Running do
 	jmp	.Lj74
 	.balign 8,0x90
 .Lj73:
-# [309] Sleep(500);
+# [324] Sleep(500);
 	movl	$500,%ecx
 	call	SYSUTILS_$$_SLEEP$LONGWORD
-# [310] if not Running then Break;
+# [325] if not Running then Break;
 	cmpb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
 	je	.Lj75
 	.balign 4,0x90
-# [312] UpdateSharedMemory;
+# [327] UpdateSharedMemory;
 	call	SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY
-# [314] EnterCriticalSection(HyperCS);
+# [329] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
-# [315] BestFitness   := PopFitness[0];
+# [330] BestFitness   := PopFitness[0];
 	movq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-# [316] BestGenomeIdx := 0;
+# [331] BestGenomeIdx := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
-# [317] sum := 0.0;
+# [332] sum := 0.0;
 	movsd	_$SOMA_HYPERVISOR$_Ld10(%rip),%xmm6
-# [318] for i := 0 to POPULATION_SIZE-1 do
+# [333] for i := 0 to POPULATION_SIZE-1 do
 	movl	$-1,%ebx
 	.balign 8,0x90
 .Lj78:
 	addl	$1,%ebx
-# [320] sum := sum + PopFitness[i];
+# [335] sum := sum + PopFitness[i];
 	movl	%ebx,%eax
 	movapd	%xmm6,%xmm0
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	addsd	(%rdx,%rax,8),%xmm0
 	movapd	%xmm0,%xmm6
-# [321] if PopFitness[i] > BestFitness then
+# [336] if PopFitness[i] > BestFitness then
 	movl	%ebx,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	movsd	(%rdx,%rax,8),%xmm0
 	comisd	U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip),%xmm0
 	jp	.Lj82
 	jna	.Lj82
-# [323] BestFitness   := PopFitness[i];
+# [338] BestFitness   := PopFitness[i];
 	movl	%ebx,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	movq	(%rdx,%rax,8),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-# [324] BestGenomeIdx := i;
+# [339] BestGenomeIdx := i;
 	movl	%ebx,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
 	.balign 4,0x90
 .Lj82:
 	cmpl	$127,%ebx
 	jnge	.Lj78
-# [327] AvgFitness := sum / POPULATION_SIZE;
+# [342] AvgFitness := sum / POPULATION_SIZE;
 	movapd	%xmm6,%xmm0
 	mulsd	_$SOMA_HYPERVISOR$_Ld11(%rip),%xmm0
 	movsd	%xmm0,U_$SOMA_HYPERVISOR_$$_AVGFITNESS(%rip)
-# [328] LeaveCriticalSection(HyperCS);
+# [343] LeaveCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$LeaveCriticalSection
-# [330] WriteLn('Gen: ', Generation,
+# [345] WriteLn('Gen: ', Generation,
 	call	fpc_get_output
 	movq	%rax,%rsi
 	leaq	_$SOMA_HYPERVISOR$_Ld12(%rip),%r8
@@ -793,7 +793,7 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	xorl	%ecx,%ecx
 	call	fpc_write_text_shortstr
 	call	fpc_iocheck
-# [333] '  (genome #', BestGenomeIdx, ')');
+# [348] '  (genome #', BestGenomeIdx, ')');
 	movslq	U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip),%r8
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
@@ -812,9 +812,9 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	jne	.Lj73
 .Lj75:
 # Var $result located in register rax
-# [335] Result := 0;
+# [350] Result := 0;
 	xorl	%eax,%eax
-# [336] end;
+# [351] end;
 	nop
 	movdqa	48(%rsp),%xmm6
 	leaq	72(%rsp),%rsp
@@ -830,7 +830,7 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 .Lc32:
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
-# [345] begin
+# [360] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -841,40 +841,40 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 .seh_endprologue
 # Var i located in register esi
 # Var colony_count located in register ecx
-# [346] if colony_count > MAX_COLONIES then colony_count := MAX_COLONIES;
+# [361] if colony_count > MAX_COLONIES then colony_count := MAX_COLONIES;
 	cmpl	$16,%ecx
 	jng	.Lj87
 	movl	$16,%ecx
 	.balign 4,0x90
 .Lj87:
-# [347] if colony_count < 1 then colony_count := 1;
+# [362] if colony_count < 1 then colony_count := 1;
 	cmpl	$1,%ecx
 	jnl	.Lj89
 	movl	$1,%ecx
 	.balign 4,0x90
 .Lj89:
 # Var colony_count located in register ecx
-# [348] ColonyCount := colony_count;
+# [363] ColonyCount := colony_count;
 	movl	%ecx,U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip)
-# [349] Generation  := 0;
+# [364] Generation  := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-# [350] BestFitness := 0.0;
+# [365] BestFitness := 0.0;
 	movq	_$SOMA_HYPERVISOR$_Ld10(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-# [351] AvgFitness  := 0.0;
+# [366] AvgFitness  := 0.0;
 	movq	_$SOMA_HYPERVISOR$_Ld10(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_AVGFITNESS(%rip)
-# [352] Running     := False;
+# [367] Running     := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-# [354] InitCriticalSection(HyperCS);
+# [369] InitCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	SYSTEM_$$_INITCRITICALSECTION$TRTLCRITICALSECTION
-# [355] InitSharedMemory;
+# [370] InitSharedMemory;
 	call	SOMA_HYPERVISOR_$$_INITSHAREDMEMORY
-# [356] StartTime := ReadTSC;
+# [371] StartTime := ReadTSC;
 	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_STARTTIME(%rip)
-# [358] for i := 0 to ColonyCount-1 do
+# [373] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
@@ -883,23 +883,23 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	.balign 8,0x90
 .Lj92:
 	addl	$1,%esi
-# [360] Colonies[i].colony_id := i;
+# [375] Colonies[i].colony_id := i;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rax
 	movl	%esi,28(%rax,%rdx)
-# [361] Colonies[i].active    := False;
+# [376] Colonies[i].active    := False;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movb	$0,24(%rdx,%rax)
-# [362] Colonies[i].fitness   := 0.0;
+# [377] Colonies[i].fitness   := 0.0;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rcx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movq	_$SOMA_HYPERVISOR$_Ld10(%rip),%rax
 	movq	%rax,32(%rdx,%rcx)
-# [363] Colonies[i].state     := AllocAligned(SizeOf(TVMState), Colonies[i].raw_alloc);
+# [378] Colonies[i].state     := AllocAligned(SizeOf(TVMState), Colonies[i].raw_alloc);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -910,7 +910,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	imulq	$56,%rdx,%rcx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movq	%rax,8(%rdx,%rcx)
-# [364] FillChar(Colonies[i].state^, SizeOf(TVMState), 0);
+# [379] FillChar(Colonies[i].state^, SizeOf(TVMState), 0);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -922,30 +922,30 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	jnle	.Lj92
 	.balign 4,0x90
 .Lj91:
-# [367] GlobalRNG := UInt64($CAFE1234DEADBEEF);
+# [382] GlobalRNG := UInt64($CAFE1234DEADBEEF);
 	movl	$-559038737,U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip)
 	movl	$-889318860,U_$SOMA_HYPERVISOR_$$_GLOBALRNG+4(%rip)
 # Var i located in register ebx
-# [368] for i := 0 to POPULATION_SIZE-1 do
+# [383] for i := 0 to POPULATION_SIZE-1 do
 	movl	$-1,%ebx
 	.balign 8,0x90
 .Lj95:
 	addl	$1,%ebx
-# [370] RandomGenome(Population[i], GlobalRNG);
+# [385] RandomGenome(Population[i], GlobalRNG);
 	movl	%ebx,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
 	leaq	(%rdx,%rax),%rcx
 	leaq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rdx
 	call	SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD
-# [371] PopFitness[i] := 0.0;
+# [386] PopFitness[i] := 0.0;
 	movl	%ebx,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	movq	_$SOMA_HYPERVISOR$_Ld10(%rip),%rcx
 	movq	%rcx,(%rdx,%rax,8)
 	cmpl	$127,%ebx
 	jnge	.Lj95
-# [374] WriteLn('SOMA Hypervisor initialised');
+# [389] WriteLn('SOMA Hypervisor initialised');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld16(%rip),%r8
@@ -956,7 +956,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [375] WriteLn('  Colonies  : ', ColonyCount);
+# [390] WriteLn('  Colonies  : ', ColonyCount);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld17(%rip),%r8
@@ -972,7 +972,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [376] WriteLn('  Population: ', POPULATION_SIZE);
+# [391] WriteLn('  Population: ', POPULATION_SIZE);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld18(%rip),%r8
@@ -988,7 +988,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [377] WriteLn('  VMState   : ', SizeOf(TVMState), ' bytes per colony');
+# [392] WriteLn('  VMState   : ', SizeOf(TVMState), ' bytes per colony');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld19(%rip),%r8
@@ -1009,7 +1009,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [378] WriteLn('  Total RAM : ', (ColonyCount * SizeOf(TVMState)) div 1024, ' KB for VM states');
+# [393] WriteLn('  Total RAM : ', (ColonyCount * SizeOf(TVMState)) div 1024, ' KB for VM states');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld21(%rip),%r8
@@ -1036,7 +1036,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [379] end;
+# [394] end;
 	nop
 	leaq	40(%rsp),%rsp
 	popq	%rsi
@@ -1051,7 +1051,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 .Lc35:
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORRUN
-# [384] begin
+# [399] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rdi
@@ -1063,9 +1063,9 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 .seh_stackalloc 32
 .seh_endprologue
 # Var i located in register esi
-# [385] Running := True;
+# [400] Running := True;
 	movb	$1,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-# [386] WriteLn('Starting colony threads...');
+# [401] WriteLn('Starting colony threads...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld23(%rip),%r8
@@ -1076,7 +1076,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [388] for i := 0 to ColonyCount-1 do
+# [403] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
@@ -1085,12 +1085,12 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	.balign 8,0x90
 .Lj102:
 	addl	$1,%esi
-# [390] Colonies[i].active    := True;
+# [405] Colonies[i].active    := True;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movb	$1,24(%rdx,%rax)
-# [391] Colonies[i].thread_id := BeginThread(@ColonyThreadProc, @Colonies[i]);
+# [406] Colonies[i].thread_id := BeginThread(@ColonyThreadProc, @Colonies[i]);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1101,13 +1101,13 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	imulq	$56,%rdx,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rcx
 	movl	%eax,(%rcx,%rdx)
-# [392] if Colonies[i].thread_id = 0 then
+# [407] if Colonies[i].thread_id = 0 then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	cmpl	$0,(%rdx,%rax)
 	jne	.Lj106
-# [393] WriteLn('WARNING: Failed to start colony thread ', i)
+# [408] WriteLn('WARNING: Failed to start colony thread ', i)
 	call	fpc_get_output
 	movq	%rax,%rdi
 	leaq	_$SOMA_HYPERVISOR$_Ld24(%rip),%r8
@@ -1125,7 +1125,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	call	fpc_iocheck
 	jmp	.Lj107
 .Lj106:
-# [395] WriteLn('  Colony ', i, ' started (thread ', Colonies[i].thread_id, ')');
+# [410] WriteLn('  Colony ', i, ' started (thread ', Colonies[i].thread_id, ')');
 	call	fpc_get_output
 	movq	%rax,%rdi
 	leaq	_$SOMA_HYPERVISOR$_Ld25(%rip),%r8
@@ -1164,15 +1164,15 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	jnle	.Lj102
 	.balign 4,0x90
 .Lj101:
-# [398] StatusThreadID := BeginThread(@StatusThreadProc, nil);
+# [413] StatusThreadID := BeginThread(@StatusThreadProc, nil);
 	leaq	SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64(%rip),%rcx
 	xorl	%edx,%edx
 	call	SYSTEM_$$_BEGINTHREAD$TTHREADFUNC$POINTER$$LONGWORD
 	movl	%eax,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
-# [399] if StatusThreadID = 0 then
+# [414] if StatusThreadID = 0 then
 	testl	%eax,%eax
 	jne	.Lj109
-# [400] WriteLn('WARNING: Failed to start status thread');
+# [415] WriteLn('WARNING: Failed to start status thread');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld27(%rip),%r8
@@ -1185,7 +1185,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	call	fpc_iocheck
 	.balign 4,0x90
 .Lj109:
-# [402] WriteLn('Hypervisor running. Press Enter to stop...');
+# [417] WriteLn('Hypervisor running. Press Enter to stop...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld28(%rip),%r8
@@ -1196,14 +1196,14 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [403] Readln;
+# [418] Readln;
 	call	fpc_get_input
 	movq	%rax,%rcx
 	call	fpc_readln_end
 	call	fpc_iocheck
-# [405] Running := False;
+# [420] Running := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-# [406] end;
+# [421] end;
 	nop
 	leaq	32(%rsp),%rsp
 	popq	%rsi
@@ -1219,7 +1219,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 .Lc38:
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORSTOP
-# [411] begin
+# [426] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -1229,7 +1229,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 .seh_stackalloc 40
 .seh_endprologue
 # Var i located in register esi
-# [412] WriteLn('Stopping hypervisor...');
+# [427] WriteLn('Stopping hypervisor...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld29(%rip),%r8
@@ -1240,19 +1240,19 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [414] if StatusThreadID <> 0 then
+# [429] if StatusThreadID <> 0 then
 	cmpl	$0,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
 	je	.Lj113
-# [416] WaitForSingleObject(StatusThreadID, 2000);
+# [431] WaitForSingleObject(StatusThreadID, 2000);
 	movl	U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip),%ecx
 	movl	$2000,%edx
 	call	_$dll$kernel32$WaitForSingleObject
-# [417] CloseHandle(StatusThreadID);
+# [432] CloseHandle(StatusThreadID);
 	movl	U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip),%ecx
 	call	_$dll$kernel32$CloseHandle
 	.balign 4,0x90
 .Lj113:
-# [420] for i := 0 to ColonyCount-1 do
+# [435] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
@@ -1261,7 +1261,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	.balign 8,0x90
 .Lj116:
 	addl	$1,%esi
-# [422] if Colonies[i].active and (Colonies[i].thread_id <> 0) then
+# [437] if Colonies[i].active and (Colonies[i].thread_id <> 0) then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1270,20 +1270,20 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	je	.Lj120
 	cmpl	$0,(%rax)
 	je	.Lj120
-# [424] WaitForSingleObject(Colonies[i].thread_id, 5000);
+# [439] WaitForSingleObject(Colonies[i].thread_id, 5000);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movl	(%rdx,%rax),%ecx
 	movl	$5000,%edx
 	call	_$dll$kernel32$WaitForSingleObject
-# [425] CloseHandle(Colonies[i].thread_id);
+# [440] CloseHandle(Colonies[i].thread_id);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rax
 	movl	(%rax,%rdx),%ecx
 	call	_$dll$kernel32$CloseHandle
-# [426] Colonies[i].active := False;
+# [441] Colonies[i].active := False;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1294,7 +1294,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	jnle	.Lj116
 	.balign 4,0x90
 .Lj115:
-# [430] for i := 0 to ColonyCount-1 do
+# [445] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
@@ -1303,13 +1303,13 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	.balign 8,0x90
 .Lj124:
 	addl	$1,%esi
-# [431] if Colonies[i].raw_alloc <> nil then
+# [446] if Colonies[i].raw_alloc <> nil then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	cmpq	$0,16(%rdx,%rax)
 	je	.Lj128
-# [432] FreeMem(Colonies[i].raw_alloc);
+# [447] FreeMem(Colonies[i].raw_alloc);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1321,12 +1321,12 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	jnle	.Lj124
 	.balign 4,0x90
 .Lj123:
-# [434] CloseSharedMemory;
+# [449] CloseSharedMemory;
 	call	SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY
-# [435] DoneCriticalSection(HyperCS);
+# [450] DoneCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	SYSTEM_$$_DONECRITICALSECTION$TRTLCRITICALSECTION
-# [436] WriteLn('Hypervisor stopped. Total generations: ', Generation);
+# [451] WriteLn('Hypervisor stopped. Total generations: ', Generation);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld30(%rip),%r8
@@ -1342,7 +1342,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [437] end;
+# [452] end;
 	nop
 	leaq	40(%rsp),%rsp
 	popq	%rsi
@@ -1359,42 +1359,42 @@ INIT$_$SOMA_HYPERVISOR:
 SOMA_HYPERVISOR_$$_init$:
 .Lc41:
 .seh_proc SOMA_HYPERVISOR_$$_init$
-# [439] initialization
+# [454] initialization
 	leaq	-40(%rsp),%rsp
 .Lc43:
 .seh_stackalloc 40
 .seh_endprologue
-# [440] FillChar(Colonies,   SizeOf(Colonies),   0);
+# [455] FillChar(Colonies,   SizeOf(Colonies),   0);
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rax
 	xorl	%r8d,%r8d
 	movl	$896,%edx
 	movq	%rax,%rcx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-# [441] FillChar(Population, SizeOf(Population), 0);
+# [456] FillChar(Population, SizeOf(Population), 0);
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$4194304,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-# [442] FillChar(PopFitness, SizeOf(PopFitness), 0);
+# [457] FillChar(PopFitness, SizeOf(PopFitness), 0);
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$1024,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-# [443] Running        := False;
+# [458] Running        := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-# [444] ShmemHandle    := 0;
+# [459] ShmemHandle    := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip)
-# [445] Shmem          := nil;
+# [460] Shmem          := nil;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
-# [446] StartTime      := 0;
+# [461] StartTime      := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_STARTTIME(%rip)
-# [447] Generation     := 0;
+# [462] Generation     := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-# [448] StatusThreadID := 0;
+# [463] StatusThreadID := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
-# [449] BestGenomeIdx  := 0;
+# [464] BestGenomeIdx  := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
-# [451] end.
+# [466] end.
 	nop
 	leaq	40(%rsp),%rsp
 	ret
@@ -1593,14 +1593,14 @@ _$SOMA_HYPERVISOR$_Ld12:
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld13
 _$SOMA_HYPERVISOR$_Ld13:
-# [331] '  Best: ', BestFitness:6:4,
+# [346] '  Best: ', BestFitness:6:4,
 	.ascii	"\010  Best: \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld14,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld14
 _$SOMA_HYPERVISOR$_Ld14:
-# [332] '  Avg: ',  AvgFitness:6:4,
+# [347] '  Avg: ',  AvgFitness:6:4,
 	.ascii	"\007  Avg: \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld15,"d"
@@ -1706,7 +1706,7 @@ _$SOMA_HYPERVISOR$_Ld30:
 .globl	RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE
 RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE:
 	.byte	29,8
-# [452] 
+# [467] 
 	.ascii	"PVMState"
 	.quad	RTTI_$SOMA_TYPES_$$_TVMSTATE$indirect
 

@@ -256,14 +256,29 @@ begin
 
   while Running do
   begin
-    // --- select a parent and produce offspring under lock ---
+    // --- select a parent, produce offspring, and mutate: ALL under lock.
+    // MutateGenome's copy-block operator reads live Population data too
+    // (source_pool, not just the parent copy) -- previously that read
+    // happened UNLOCKED here while another thread could be concurrently
+    // executing `Population[worst_idx] := offspring;` below under lock.
+    // That's a genuine data race on a 32KB, non-atomic struct assignment:
+    // a concurrent unlocked reader can observe a torn genome mid-write,
+    // handing Execute() an instruction stream that isn't just "randomly
+    // mutated" but arbitrarily inconsistent -- opcode/imm pairs that
+    // never came from the same instruction, not bounded by any of the
+    // assumptions the rest of the VM's hardening relies on. This is
+    // exactly the class of bug that never reproduces under single-
+    // threaded fuzzing (confirmed: it doesn't) but can crash unpredictably
+    // under real concurrent execution. Mutation itself is cheap, pure
+    // in-memory work -- a few array writes -- so covering it under the
+    // same lock as the parent-copy costs microseconds, negligible next
+    // to Execute() (which correctly stays OUTSIDE the lock below, since
+    // that's the genuinely expensive part).
     EnterCriticalSection(HyperCS);
     parent_idx := TournamentSelect(local_rng, 4);
     offspring  := Population[parent_idx];
-    LeaveCriticalSection(HyperCS);
-
-    // mutate outside the lock - offspring is a local copy
     MutateGenome(offspring, Population, local_rng);
+    LeaveCriticalSection(HyperCS);
 
     // --- evaluate offspring ---
     state^.genome       := offspring;
