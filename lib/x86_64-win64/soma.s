@@ -1,4 +1,18 @@
 	.file "soma.lpr"
+# Begin asmlist al_begin
+
+.section .debug_line
+.Ldebug_linesection0:
+.Ldebug_line0:
+
+.section .debug_abbrev
+.Ldebug_abbrevsection0:
+.Ldebug_abbrev0:
+
+.section .text.b_DEBUGSTART_$P$SOMA,"x"
+.globl	DEBUGSTART_$P$SOMA
+DEBUGSTART_$P$SOMA:
+# End asmlist al_begin
 # Begin asmlist al_procedures
 
 .section .text.n_main,"x"
@@ -9,6 +23,7 @@ PASCALMAIN:
 main:
 .Lc1:
 .seh_proc main
+.Ll1:
 # [soma.lpr]
 # [14] begin
 	pushq	%rbx
@@ -25,11 +40,14 @@ main:
 # Var OK located in register al
 	call	fpc_initializeunits
 # Var OK located in register dil
+.Ll2:
 # [15] OK        := True;
 	movb	$1,%dil
 # Var StateSize located in register esi
+.Ll3:
 # [16] StateSize := SizeOf(TVMState);
 	movl	$37184,%esi
+.Ll4:
 # [18] WriteLn('SOMA - Self Organizing Machine Architecture');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -41,6 +59,7 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll5:
 # [19] WriteLn('===========================================');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -52,11 +71,13 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll6:
 # [20] WriteLn;
 	call	fpc_get_output
 	movq	%rax,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll7:
 # [21] WriteLn('Startup checks:');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -68,6 +89,7 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll8:
 # [28] WriteLn('OK   TInstruction = 8 bytes');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -79,6 +101,7 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll9:
 # [30] if (StateSize mod 64) <> 0 then
 	movslq	%esi,%rax
 	cqto
@@ -86,6 +109,7 @@ main:
 	idivq	%rcx
 	testq	%rdx,%rdx
 	je	.Lj4
+.Ll10:
 # [32] WriteLn('FAIL: TVMState = ', StateSize, ' (not 64-byte aligned)');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -107,10 +131,12 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll11:
 # [33] OK := False;
 	xorb	%dil,%dil
 	jmp	.Lj5
 .Lj4:
+.Ll12:
 # [35] WriteLn('OK   TVMState = ', StateSize, ' bytes (64-byte aligned)');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -133,6 +159,7 @@ main:
 	call	fpc_writeln_end
 	call	fpc_iocheck
 .Lj5:
+.Ll13:
 # [42] WriteLn('OK   GENOME_OFFSET = 4392');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -144,6 +171,7 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll14:
 # [49] WriteLn('OK   VALID_OPCODE_COUNT = 67');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -155,14 +183,17 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll15:
 # [51] WriteLn;
 	call	fpc_get_output
 	movq	%rax,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll16:
 # [53] if not OK then
 	testb	%dil,%dil
 	jne	.Lj7
+.Ll17:
 # [55] WriteLn('Startup checks FAILED. Press Enter to exit.');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -174,16 +205,19 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll18:
 # [56] Readln;
 	call	fpc_get_input
 	movq	%rax,%rcx
 	call	fpc_readln_end
 	call	fpc_iocheck
+.Ll19:
 # [57] Halt(1);
 	movl	$1,%ecx
 	call	SYSTEM_$$_HALT$LONGINT
 	.balign 4,0x90
 .Lj7:
+.Ll20:
 # [60] WriteLn('All checks passed.');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -195,23 +229,29 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll21:
 # [61] WriteLn;
 	call	fpc_get_output
 	movq	%rax,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-# [63] HypervisorInit(4);  // start with 4 colonies
-	movl	$4,%ecx
+.Ll22:
+# [63] HypervisorInit(1);  // start with 4 colonies
+	movl	$1,%ecx
 	call	SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
+.Ll23:
 # [64] HypervisorRun;      // blocks until Enter pressed
 	call	SOMA_HYPERVISOR_$$_HYPERVISORRUN
+.Ll24:
 # [65] HypervisorStop;
 	call	SOMA_HYPERVISOR_$$_HYPERVISORSTOP
+.Ll25:
 # [67] WriteLn;
 	call	fpc_get_output
 	movq	%rax,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll26:
 # [68] WriteLn('Press Enter to exit...');
 	call	fpc_get_output
 	movq	%rax,%rbx
@@ -223,11 +263,13 @@ main:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
+.Ll27:
 # [69] Readln;
 	call	fpc_get_input
 	movq	%rax,%rcx
 	call	fpc_readln_end
 	call	fpc_iocheck
+.Ll28:
 # [70] end.
 	call	fpc_do_exit
 	nop
@@ -238,6 +280,20 @@ main:
 	ret
 .seh_endproc
 .Lc2:
+.Lt1:
+.Ll29:
+
+.section .fpc.n_links
+	.quad	DEBUGSTART_$P$SOMA
+	.quad	DEBUGEND_$P$SOMA
+	.quad	DEBUGSTART_$SOMA_TYPES
+	.quad	DEBUGEND_$SOMA_TYPES
+	.quad	DEBUGSTART_$SOMA_CORE
+	.quad	DEBUGEND_$SOMA_CORE
+	.quad	DEBUGSTART_$SOMA_HYPERVISOR
+	.quad	DEBUGEND_$SOMA_HYPERVISOR
+	.quad	DEBUGSTART_$SOMA_MUTATE
+	.quad	DEBUGEND_$SOMA_MUTATE
 # End asmlist al_procedures
 # Begin asmlist al_globals
 
@@ -256,13 +312,14 @@ U_$P$SOMA_$$_OK:
 	.balign 8
 .globl	INITFINAL
 INITFINAL:
-	.quad	6,0
+	.quad	7,0
 	.quad	INIT$_$SYSTEM
-	.quad	0
-	.quad	INIT$_$FPINTRES
 	.quad	0,0
 	.quad	FINALIZE$_$OBJPAS
-	.quad	0
+	.quad	INIT$_$LNFODWRF
+	.quad	FINALIZE$_$LNFODWRF
+	.quad	INIT$_$FPINTRES
+	.quad	0,0
 	.quad	FINALIZE$_$WINDIRS
 	.quad	INIT$_$SYSUTILS
 	.quad	FINALIZE$_$SYSUTILS
@@ -427,4 +484,416 @@ _$SOMA$_Ld13:
 	.balign 4,0
 .Lc8:
 # End asmlist al_dwarf_frame
+# Begin asmlist al_dwarf_info
+
+.section .debug_info
+.Ldebug_info0:
+	.long	.Ledebug_info0-.Lf2
+.Lf2:
+	.short	3
+	.secrel32	.Ldebug_abbrev0
+	.byte	8
+	.uleb128	1
+	.ascii	"soma.lpr\000"
+	.ascii	"Free Pascal 3.2.2 2026/06/06\000"
+	.ascii	"C:/dev/soma/\000"
+	.byte	9
+	.byte	3
+	.secrel32	.Ldebug_line0
+	.quad	DEBUGSTART_$P$SOMA
+	.quad	DEBUGEND_$P$SOMA
+# Syms - Begin Staticsymtable
+# Symbol SYSTEM
+# Symbol LNFODWRF
+# Symbol FPINTRES
+# Symbol OBJPAS
+# Symbol SOMA_TYPES
+# Symbol SOMA_CORE
+# Symbol SOMA_HYPERVISOR
+# Symbol SOMA_MUTATE
+# Symbol SOMA
+# Symbol main
+# Symbol STATESIZE
+	.uleb128	2
+	.ascii	"StateSize\000"
+	.byte	2
+	.byte	144
+	.uleb128	4
+	.long	.La1-.Ldebug_info0
+# Symbol OK
+	.uleb128	2
+	.ascii	"OK\000"
+	.byte	2
+	.byte	144
+	.uleb128	5
+	.long	.La3-.Ldebug_info0
+# Symbol SYSINIT
+# Syms - End Staticsymtable
+# Procdef $main; Register;
+	.uleb128	3
+	.ascii	"$main\000"
+	.byte	1
+	.byte	65
+	.byte	1
+	.quad	main
+	.quad	.Lt1
+	.byte	0
+# Defs - Begin unit SYSTEM has index 1
+# Definition LongInt
+.La1:
+	.uleb128	4
+	.ascii	"LongInt\000"
+	.long	.La5-.Ldebug_info0
+.La5:
+	.uleb128	5
+	.ascii	"LongInt\000"
+	.byte	5
+	.byte	4
+.La2:
+	.uleb128	6
+	.long	.La1-.Ldebug_info0
+# Definition Boolean
+.La3:
+	.uleb128	4
+	.ascii	"Boolean\000"
+	.long	.La6-.Ldebug_info0
+.La6:
+	.uleb128	5
+	.ascii	"Boolean\000"
+	.byte	2
+	.byte	1
+.La4:
+	.uleb128	6
+	.long	.La3-.Ldebug_info0
+# Defs - End unit SYSTEM has index 1
+# Defs - Begin unit STRINGS has index 4
+# Defs - End unit STRINGS has index 4
+# Defs - Begin unit OBJPAS has index 6
+# Defs - End unit OBJPAS has index 6
+# Defs - Begin unit WINDOWS has index 5
+# Defs - End unit WINDOWS has index 5
+# Defs - Begin unit EXEINFO has index 3
+# Defs - End unit EXEINFO has index 3
+# Defs - Begin unit LNFODWRF has index 2
+# Defs - End unit LNFODWRF has index 2
+# Defs - Begin unit FPINTRES has index 7
+# Defs - End unit FPINTRES has index 7
+# Defs - Begin unit SOMA_TYPES has index 8
+# Defs - End unit SOMA_TYPES has index 8
+# Defs - Begin unit SYSCONST has index 14
+# Defs - End unit SYSCONST has index 14
+# Defs - Begin unit WINDIRS has index 15
+# Defs - End unit WINDIRS has index 15
+# Defs - Begin unit SYSUTILS has index 13
+# Defs - End unit SYSUTILS has index 13
+# Defs - Begin unit MATH has index 12
+# Defs - End unit MATH has index 12
+# Defs - Begin unit SOMA_CORE has index 9
+# Defs - End unit SOMA_CORE has index 9
+# Defs - Begin unit SOMA_MUTATE has index 11
+# Defs - End unit SOMA_MUTATE has index 11
+# Defs - Begin unit SOMA_HYPERVISOR has index 10
+# Defs - End unit SOMA_HYPERVISOR has index 10
+# Defs - Begin unit SYSINIT has index 16
+# Defs - End unit SYSINIT has index 16
+# Defs - Begin Staticsymtable
+# Defs - End Staticsymtable
+	.byte	0
+.Ledebug_info0:
+# End asmlist al_dwarf_info
+# Begin asmlist al_dwarf_abbrev
+
+.section .debug_abbrev
+# Abbrev 1
+	.uleb128	1
+	.uleb128	17
+	.byte	1
+	.uleb128	3
+	.uleb128	8
+	.uleb128	37
+	.uleb128	8
+	.uleb128	27
+	.uleb128	8
+	.uleb128	19
+	.uleb128	11
+	.uleb128	66
+	.uleb128	11
+	.uleb128	16
+	.uleb128	6
+	.uleb128	17
+	.uleb128	1
+	.uleb128	18
+	.uleb128	1
+	.byte	0
+	.byte	0
+# Abbrev 2
+	.uleb128	2
+	.uleb128	52
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	2
+	.uleb128	10
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
+# Abbrev 3
+	.uleb128	3
+	.uleb128	46
+	.byte	1
+	.uleb128	3
+	.uleb128	8
+	.uleb128	39
+	.uleb128	12
+	.uleb128	54
+	.uleb128	11
+	.uleb128	63
+	.uleb128	12
+	.uleb128	17
+	.uleb128	1
+	.uleb128	18
+	.uleb128	1
+	.byte	0
+	.byte	0
+# Abbrev 4
+	.uleb128	4
+	.uleb128	22
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
+# Abbrev 5
+	.uleb128	5
+	.uleb128	36
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	62
+	.uleb128	11
+	.uleb128	11
+	.uleb128	11
+	.byte	0
+	.byte	0
+# Abbrev 6
+	.uleb128	6
+	.uleb128	16
+	.byte	0
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
+	.byte	0
+# End asmlist al_dwarf_abbrev
+# Begin asmlist al_dwarf_line
+
+.section .debug_line
+# === header start ===
+	.long	.Ledebug_line0-.Lf3
+.Lf3:
+	.short	3
+	.long	.Lehdebug_line0-.Lf4
+.Lf4:
+	.byte	1
+	.byte	1
+	.byte	1
+	.byte	255
+	.byte	13
+	.byte	0
+	.byte	1
+	.byte	1
+	.byte	1
+	.byte	1
+	.byte	0
+	.byte	0
+	.byte	0
+	.byte	1
+	.byte	0
+	.byte	0
+	.byte	1
+# include_directories
+	.byte	0
+# file_names
+	.ascii	"soma.lpr\000"
+	.uleb128	0
+	.uleb128	0
+	.uleb128	0
+	.byte	0
+.Lehdebug_line0:
+# === header end ===
+# function: PASCALMAIN
+# function: main
+# [14:1]
+	.byte	0
+	.uleb128	9
+	.byte	2
+	.quad	.Ll1
+	.byte	5
+	.uleb128	1
+	.byte	25
+# [15:3]
+	.byte	2
+	.uleb128	.Ll2-.Ll1
+	.byte	5
+	.uleb128	3
+	.byte	13
+# [16:3]
+	.byte	2
+	.uleb128	.Ll3-.Ll2
+	.byte	13
+# [18:3]
+	.byte	2
+	.uleb128	.Ll4-.Ll3
+	.byte	14
+# [19:3]
+	.byte	2
+	.uleb128	.Ll5-.Ll4
+	.byte	13
+# [20:3]
+	.byte	2
+	.uleb128	.Ll6-.Ll5
+	.byte	13
+# [21:3]
+	.byte	2
+	.uleb128	.Ll7-.Ll6
+	.byte	13
+# [28:5]
+	.byte	2
+	.uleb128	.Ll8-.Ll7
+	.byte	5
+	.uleb128	5
+	.byte	19
+# [30:7]
+	.byte	2
+	.uleb128	.Ll9-.Ll8
+	.byte	5
+	.uleb128	7
+	.byte	14
+# [32:5]
+	.byte	2
+	.uleb128	.Ll10-.Ll9
+	.byte	5
+	.uleb128	5
+	.byte	14
+# [33:5]
+	.byte	2
+	.uleb128	.Ll11-.Ll10
+	.byte	13
+# [35:5]
+	.byte	2
+	.uleb128	.Ll12-.Ll11
+	.byte	14
+# [42:5]
+	.byte	2
+	.uleb128	.Ll13-.Ll12
+	.byte	19
+# [49:5]
+	.byte	2
+	.uleb128	.Ll14-.Ll13
+	.byte	19
+# [51:3]
+	.byte	2
+	.uleb128	.Ll15-.Ll14
+	.byte	5
+	.uleb128	3
+	.byte	14
+# [53:6]
+	.byte	2
+	.uleb128	.Ll16-.Ll15
+	.byte	5
+	.uleb128	6
+	.byte	14
+# [55:5]
+	.byte	2
+	.uleb128	.Ll17-.Ll16
+	.byte	5
+	.uleb128	5
+	.byte	14
+# [56:5]
+	.byte	2
+	.uleb128	.Ll18-.Ll17
+	.byte	13
+# [57:5]
+	.byte	2
+	.uleb128	.Ll19-.Ll18
+	.byte	13
+# [60:3]
+	.byte	2
+	.uleb128	.Ll20-.Ll19
+	.byte	5
+	.uleb128	3
+	.byte	15
+# [61:3]
+	.byte	2
+	.uleb128	.Ll21-.Ll20
+	.byte	13
+# [63:3]
+	.byte	2
+	.uleb128	.Ll22-.Ll21
+	.byte	14
+# [64:3]
+	.byte	2
+	.uleb128	.Ll23-.Ll22
+	.byte	13
+# [65:3]
+	.byte	2
+	.uleb128	.Ll24-.Ll23
+	.byte	13
+# [67:3]
+	.byte	2
+	.uleb128	.Ll25-.Ll24
+	.byte	14
+# [68:3]
+	.byte	2
+	.uleb128	.Ll26-.Ll25
+	.byte	13
+# [69:3]
+	.byte	2
+	.uleb128	.Ll27-.Ll26
+	.byte	13
+# [70:1]
+	.byte	2
+	.uleb128	.Ll28-.Ll27
+	.byte	5
+	.uleb128	1
+	.byte	13
+	.byte	0
+	.uleb128	9
+	.byte	2
+	.quad	.Ll29
+	.byte	0
+	.byte	1
+	.byte	1
+# ###################
+.Ledebug_line0:
+# End asmlist al_dwarf_line
+# Begin asmlist al_dwarf_aranges
+
+.section .debug_aranges
+	.long	.Learanges0-.Lf1
+.Lf1:
+	.short	2
+	.secrel32	.Ldebug_info0
+	.byte	8
+	.byte	0
+	.long	0
+	.quad	main
+	.quad	.Lt1-main
+	.quad	0
+	.quad	0
+.Learanges0:
+# End asmlist al_dwarf_aranges
+# Begin asmlist al_dwarf_ranges
+
+.section .debug_ranges
+# End asmlist al_dwarf_ranges
+# Begin asmlist al_end
+
+.section .text.z_DEBUGEND_$P$SOMA,"x"
+.globl	DEBUGEND_$P$SOMA
+DEBUGEND_$P$SOMA:
+# End asmlist al_end
 

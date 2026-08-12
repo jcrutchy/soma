@@ -60,7 +60,7 @@ begin
   WriteLn('All checks passed.');
   WriteLn;
 
-  HypervisorInit(4);  // start with 4 colonies
+  HypervisorInit(1);  // start with 4 colonies
   HypervisorRun;      // blocks until Enter pressed
   HypervisorStop;
 
