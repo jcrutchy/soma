@@ -48,6 +48,30 @@ begin
   rng := rng xor (rng shl 17);
 end;
 
+{ ============================================================================
+  PITFALL, confirmed to have caused a real crash in this exact file:
+  `rng mod N` where rng is UInt64 and N is a runtime-computed value (a
+  variable, a parameter, a function result like Length(x), or an
+  expression involving one) implicitly converts rng to a SIGNED Int64 for
+  the modulo. rng routinely has its top bit set, so the result can come
+  back NEGATIVE -- confirmed empirically: ~50% of draws, when reproduced
+  in isolation. `G[negative_index]` then writes/reads wildly out of
+  bounds. This crashed MutateNopBlock (`rng mod (GENOME_SIZE -
+  block_size)` -- block_size is a parameter, so the divisor isn't a
+  constant) with an access violation, reliably, single-threaded, no
+  concurrency involved.
+
+  `rng mod SOME_COMPILE_TIME_CONSTANT` (e.g. `rng mod GENOME_SIZE`) does
+  NOT have this problem -- FPC correctly performs unsigned modulo when
+  the divisor is a literal/const, confirmed empirically too. The bug is
+  specifically about non-constant divisors.
+
+  Fix: cast the divisor to UInt64 explicitly, e.g.
+  `Integer(rng mod UInt64(some_runtime_expression))`. Every "pick a
+  random index below N" call in this file must go through that pattern
+  when N isn't a bare compile-time constant.
+  ============================================================================ }
+
 // Replace a single instruction's opcode with another valid Layer 0 opcode
 procedure MutatePointOpcode(var G: TGenome; var rng: UInt64);
 var
@@ -81,7 +105,7 @@ var
 begin
   if block_size < 1 then block_size := 1;
   XorShift64(rng);
-  start_idx := rng mod (GENOME_SIZE - block_size);
+  start_idx := Integer(rng mod UInt64(GENOME_SIZE - block_size));
   for i := start_idx to start_idx + block_size - 1 do
   begin
     G[i].opcode := OP_NOP;
@@ -100,9 +124,9 @@ var
 begin
   if block_size < 1 then block_size := 1;
   XorShift64(rng);
-  src_start := rng mod (GENOME_SIZE - block_size);
+  src_start := Integer(rng mod UInt64(GENOME_SIZE - block_size));
   XorShift64(rng);
-  dst_start := rng mod (GENOME_SIZE - block_size);
+  dst_start := Integer(rng mod UInt64(GENOME_SIZE - block_size));
 
   for i := 0 to block_size - 1 do
     dst[dst_start + i] := src[src_start + i];
@@ -139,7 +163,7 @@ begin
         if Length(source_pool) > 0 then
         begin
           XorShift64(rng);
-          donor_idx := rng mod Length(source_pool);
+          donor_idx := Integer(rng mod UInt64(Length(source_pool)));
           MutateCopyBlock(G, source_pool[donor_idx], rng,
                            DEFAULT_MUTATION_PARAMS[i].block_size);
         end;

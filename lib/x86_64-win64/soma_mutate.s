@@ -62,9 +62,9 @@ SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD:
 # Var idx located in register eax
 # Var G located in register rcx
 # Var rng located in register rdx
-# [55] begin
+# [79] begin
 .Ll10:
-# [56] XorShift64(rng);
+# [80] XorShift64(rng);
 	movq	(%rdx),%rax
 	shlq	$13,%rax
 	xorq	(%rdx),%rax
@@ -76,12 +76,12 @@ SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD:
 	xorq	(%rdx),%rax
 	movq	%rax,(%rdx)
 .Ll11:
-# [57] idx := rng mod GENOME_SIZE;
+# [81] idx := rng mod GENOME_SIZE;
 	movl	(%rdx),%r8d
 	andl	$4095,%r8d
 # Var idx located in register r8d
 .Ll12:
-# [58] XorShift64(rng);
+# [82] XorShift64(rng);
 	movq	(%rdx),%rax
 	shlq	$13,%rax
 	xorq	(%rdx),%rax
@@ -93,7 +93,7 @@ SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD:
 	xorq	(%rdx),%rax
 	movq	%rax,(%rdx)
 .Ll13:
-# [59] G[idx].opcode := VALID_OPCODES[rng mod VALID_OPCODE_COUNT];
+# [83] G[idx].opcode := VALID_OPCODES[rng mod VALID_OPCODE_COUNT];
 	movq	%rax,%r9
 	movq	$-825973615240726191,%rax
 	mulq	%r9
@@ -106,7 +106,7 @@ SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD:
 	movw	(%rax,%r9,2),%ax
 	movw	%ax,(%rcx,%r8,8)
 .Ll14:
-# [60] end;
+# [84] end;
 	ret
 .Lc4:
 .Lt2:
@@ -122,9 +122,9 @@ SOMA_MUTATE_$$_MUTATEPOINTIMM$TGENOME$QWORD$LONGINT:
 # Var G located in register rcx
 # Var rng located in register rdx
 # Var max_delta located in register r8d
-# [67] begin
+# [91] begin
 .Ll16:
-# [68] XorShift64(rng);
+# [92] XorShift64(rng);
 	movq	(%rdx),%rax
 	shlq	$13,%rax
 	xorq	(%rdx),%rax
@@ -136,12 +136,12 @@ SOMA_MUTATE_$$_MUTATEPOINTIMM$TGENOME$QWORD$LONGINT:
 	xorq	(%rdx),%rax
 	movq	%rax,(%rdx)
 .Ll17:
-# [69] idx := rng mod GENOME_SIZE;
+# [93] idx := rng mod GENOME_SIZE;
 	movl	(%rdx),%r9d
 	andl	$4095,%r9d
 # Var idx located in register r9d
 .Ll18:
-# [70] XorShift64(rng);
+# [94] XorShift64(rng);
 	movq	(%rdx),%rax
 	shlq	$13,%rax
 	xorq	(%rdx),%rax
@@ -153,7 +153,7 @@ SOMA_MUTATE_$$_MUTATEPOINTIMM$TGENOME$QWORD$LONGINT:
 	xorq	(%rdx),%rax
 	movq	%rax,(%rdx)
 .Ll19:
-# [72] delta := Int32(rng mod UInt64(max_delta * 2 + 1)) - max_delta;
+# [96] delta := Int32(rng mod UInt64(max_delta * 2 + 1)) - max_delta;
 	movslq	%r8d,%rax
 	shlq	$1,%rax
 	leaq	1(%rax),%r10
@@ -163,14 +163,14 @@ SOMA_MUTATE_$$_MUTATEPOINTIMM$TGENOME$QWORD$LONGINT:
 	subl	%r8d,%edx
 # Var delta located in register edx
 .Ll20:
-# [73] G[idx].imm := G[idx].imm + delta;
+# [97] G[idx].imm := G[idx].imm + delta;
 	movl	%r9d,%eax
 	movl	4(%rcx,%rax,8),%eax
 	addl	%edx,%eax
 	andl	%r9d,%r9d
 	movl	%eax,4(%rcx,%r9,8)
 .Ll21:
-# [74] end;
+# [98] end;
 	ret
 .Lc6:
 .Lt3:
@@ -186,16 +186,16 @@ SOMA_MUTATE_$$_MUTATENOPBLOCK$TGENOME$QWORD$LONGINT:
 # Var G located in register rcx
 # Var rng located in register rdx
 # Var block_size located in register r8d
-# [81] begin
+# [105] begin
 .Ll23:
-# [82] if block_size < 1 then block_size := 1;
+# [106] if block_size < 1 then block_size := 1;
 	cmpl	$1,%r8d
 	jnl	.Lj16
 	movl	$1,%r8d
 	.balign 4,0x90
 .Lj16:
 .Ll24:
-# [83] XorShift64(rng);
+# [107] XorShift64(rng);
 	movq	(%rdx),%rax
 	shlq	$13,%rax
 	xorq	(%rdx),%rax
@@ -207,16 +207,16 @@ SOMA_MUTATE_$$_MUTATENOPBLOCK$TGENOME$QWORD$LONGINT:
 	xorq	(%rdx),%rax
 	movq	%rax,(%rdx)
 .Ll25:
-# [84] start_idx := rng mod (GENOME_SIZE - block_size);
+# [108] start_idx := Integer(rng mod UInt64(GENOME_SIZE - block_size));
 	movslq	%r8d,%rax
 	movl	$4096,%r9d
 	subq	%rax,%r9
 	movq	(%rdx),%rax
-	cqto
-	idivq	%r9
+	xorl	%edx,%edx
+	divq	%r9
 # Var start_idx located in register edx
 .Ll26:
-# [85] for i := start_idx to start_idx + block_size - 1 do
+# [109] for i := start_idx to start_idx + block_size - 1 do
 	leal	(%edx,%r8d),%eax
 	subl	$1,%eax
 	cmpl	%edx,%eax
@@ -226,19 +226,19 @@ SOMA_MUTATE_$$_MUTATENOPBLOCK$TGENOME$QWORD$LONGINT:
 .Lj20:
 	addl	$1,%edx
 .Ll27:
-# [87] G[i].opcode := OP_NOP;
+# [111] G[i].opcode := OP_NOP;
 	movl	%edx,%r8d
 	movw	$0,(%rcx,%r8,8)
 .Ll28:
-# [88] G[i].flags  := 0;
+# [112] G[i].flags  := 0;
 	movl	%edx,%r8d
 	movb	$0,2(%rcx,%r8,8)
 .Ll29:
-# [89] G[i].pad    := 0;
+# [113] G[i].pad    := 0;
 	movl	%edx,%r8d
 	movb	$0,3(%rcx,%r8,8)
 .Ll30:
-# [90] G[i].imm    := 0;
+# [114] G[i].imm    := 0;
 	movl	%edx,%r8d
 	movl	$0,4(%rcx,%r8,8)
 .Ll31:
@@ -247,7 +247,7 @@ SOMA_MUTATE_$$_MUTATENOPBLOCK$TGENOME$QWORD$LONGINT:
 	.balign 4,0x90
 .Lj19:
 .Ll32:
-# [92] end;
+# [116] end;
 	ret
 .Lc8:
 .Lt4:
@@ -260,7 +260,7 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 .Lc9:
 .seh_proc SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT
 .Ll34:
-# [100] begin
+# [124] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -275,14 +275,14 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 # Var rng located in register r8
 # Var block_size located in register r9d
 .Ll35:
-# [101] if block_size < 1 then block_size := 1;
+# [125] if block_size < 1 then block_size := 1;
 	cmpl	$1,%r9d
 	jnl	.Lj26
 	movl	$1,%r9d
 	.balign 4,0x90
 .Lj26:
 .Ll36:
-# [102] XorShift64(rng);
+# [126] XorShift64(rng);
 	movq	(%r8),%rax
 	shlq	$13,%rax
 	xorq	(%r8),%rax
@@ -294,17 +294,17 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 	xorq	(%r8),%rax
 	movq	%rax,(%r8)
 .Ll37:
-# [103] src_start := rng mod (GENOME_SIZE - block_size);
+# [127] src_start := Integer(rng mod UInt64(GENOME_SIZE - block_size));
 	movslq	%r9d,%rax
 	movl	$4096,%r11d
 	subq	%rax,%r11
 	movq	(%r8),%rax
-	cqto
-	idivq	%r11
+	xorl	%edx,%edx
+	divq	%r11
 	movq	%rdx,%r11
 # Var src_start located in register r11d
 .Ll38:
-# [104] XorShift64(rng);
+# [128] XorShift64(rng);
 	movq	(%r8),%rax
 	shlq	$13,%rax
 	xorq	(%r8),%rax
@@ -316,16 +316,16 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 	xorq	(%r8),%rax
 	movq	%rax,(%r8)
 .Ll39:
-# [105] dst_start := rng mod (GENOME_SIZE - block_size);
+# [129] dst_start := Integer(rng mod UInt64(GENOME_SIZE - block_size));
 	movslq	%r9d,%rax
 	movl	$4096,%ebx
 	subq	%rax,%rbx
 	movq	(%r8),%rax
-	cqto
-	idivq	%rbx
+	xorl	%edx,%edx
+	divq	%rbx
 # Var dst_start located in register edx
 .Ll40:
-# [107] for i := 0 to block_size - 1 do
+# [131] for i := 0 to block_size - 1 do
 	leal	-1(%r9d),%eax
 	testl	%eax,%eax
 	jnge	.Lj30
@@ -334,7 +334,7 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 .Lj31:
 	addl	$1,%r8d
 .Ll41:
-# [108] dst[dst_start + i] := src[src_start + i];
+# [132] dst[dst_start + i] := src[src_start + i];
 	movslq	%edx,%r9
 	movslq	%r8d,%rbx
 	leaq	(%r9,%rbx),%rsi
@@ -348,7 +348,7 @@ SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT:
 	.balign 4,0x90
 .Lj30:
 .Ll43:
-# [109] end;
+# [133] end;
 	popq	%rsi
 	popq	%rbx
 	ret
@@ -365,7 +365,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 # Temps allocated between rbp-80 and rbp+0
 .seh_proc SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD
 .Ll45:
-# [120] begin
+# [144] begin
 	pushq	%rbp
 .seh_pushreg %rbp
 .Lc13:
@@ -402,13 +402,13 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 # Var rng located in register r12
 # Var i located in register r14d
 .Ll46:
-# [121] for i := 0 to High(DEFAULT_MUTATION_PARAMS) do
+# [145] for i := 0 to High(DEFAULT_MUTATION_PARAMS) do
 	movl	$-1,%r14d
 	.balign 8,0x90
 .Lj36:
 	addl	$1,%r14d
 .Ll47:
-# [123] XorShift64(rng);
+# [147] XorShift64(rng);
 	movq	(%r12),%rax
 	shlq	$13,%rax
 	xorq	(%r12),%rax
@@ -420,7 +420,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	xorq	(%r12),%rax
 	movq	%rax,(%r12)
 .Ll48:
-# [124] roll := (rng mod 1000000) / 1000000.0;
+# [148] roll := (rng mod 1000000) / 1000000.0;
 	movq	%rax,%rcx
 	movq	$4835703278458516699,%rax
 	mulq	%rcx
@@ -436,7 +436,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	divss	_$SOMA_MUTATE$_Ld2(%rip),%xmm0
 	cvtss2sd	%xmm0,%xmm6
 .Ll49:
-# [125] if roll > DEFAULT_MUTATION_PARAMS[i].rate then
+# [149] if roll > DEFAULT_MUTATION_PARAMS[i].rate then
 	movl	%r14d,%eax
 	imulq	$24,%rax,%rax
 	leaq	TC_$SOMA_MUTATE_$$_DEFAULT_MUTATION_PARAMS(%rip),%rdx
@@ -446,7 +446,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	.balign 4,0x90
 .Lj42:
 .Ll50:
-# [128] case DEFAULT_MUTATION_PARAMS[i].op of
+# [152] case DEFAULT_MUTATION_PARAMS[i].op of
 	movl	%r14d,%eax
 	imulq	$24,%rax,%rax
 	leaq	TC_$SOMA_MUTATE_$$_DEFAULT_MUTATION_PARAMS(%rip),%rdx
@@ -463,7 +463,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	.balign 4,0x90
 .Lj46:
 .Ll51:
-# [130] MutatePointOpcode(G, rng);
+# [154] MutatePointOpcode(G, rng);
 	movq	%r12,%rdx
 	movq	%rbx,%rcx
 	call	SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD
@@ -471,7 +471,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	.balign 4,0x90
 .Lj47:
 .Ll52:
-# [133] MutatePointImm(G, rng, DEFAULT_MUTATION_PARAMS[i].imm_delta);
+# [157] MutatePointImm(G, rng, DEFAULT_MUTATION_PARAMS[i].imm_delta);
 	movl	%r14d,%eax
 	imulq	$24,%rax,%rax
 	leaq	TC_$SOMA_MUTATE_$$_DEFAULT_MUTATION_PARAMS(%rip),%rdx
@@ -483,7 +483,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	.balign 4,0x90
 .Lj48:
 .Ll53:
-# [136] MutateNopBlock(G, rng, DEFAULT_MUTATION_PARAMS[i].block_size);
+# [160] MutateNopBlock(G, rng, DEFAULT_MUTATION_PARAMS[i].block_size);
 	movl	%r14d,%eax
 	imulq	$24,%rax,%rax
 	leaq	TC_$SOMA_MUTATE_$$_DEFAULT_MUTATION_PARAMS(%rip),%rdx
@@ -495,12 +495,12 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	.balign 4,0x90
 .Lj49:
 .Ll54:
-# [139] if Length(source_pool) > 0 then
+# [163] if Length(source_pool) > 0 then
 	leaq	1(%rdi),%rax
 	testq	%rax,%rax
 	jng	.Lj44
 .Ll55:
-# [141] XorShift64(rng);
+# [165] XorShift64(rng);
 	movq	(%r12),%rax
 	shlq	$13,%rax
 	xorq	(%r12),%rax
@@ -512,19 +512,19 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	xorq	(%r12),%rax
 	movq	%rax,(%r12)
 .Ll56:
-# [142] donor_idx := rng mod Length(source_pool);
+# [166] donor_idx := Integer(rng mod UInt64(Length(source_pool)));
 	leaq	1(%rdi),%rcx
 	movq	(%r12),%rax
-	cqto
-	idivq	%rcx
+	xorl	%edx,%edx
+	divq	%rcx
 	movl	%edx,%r13d
 .Ll57:
-# [143] MutateCopyBlock(G, source_pool[donor_idx], rng,
+# [167] MutateCopyBlock(G, source_pool[donor_idx], rng,
 	movslq	%edx,%rax
 	shlq	$15,%rax
 	leaq	(%rsi,%rax),%rdx
 .Ll58:
-# [144] DEFAULT_MUTATION_PARAMS[i].block_size);
+# [168] DEFAULT_MUTATION_PARAMS[i].block_size);
 	movl	%r14d,%eax
 	imulq	$24,%rax,%rcx
 .Ll59:
@@ -543,7 +543,7 @@ SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD:
 	cmpl	$3,%r14d
 	jnge	.Lj36
 .Ll61:
-# [148] end;
+# [172] end;
 	movq	-80(%rbp),%rbx
 	movq	-72(%rbp),%rdi
 	movq	-64(%rbp),%rsi
@@ -603,7 +603,7 @@ _$SOMA_MUTATE$_Ld2:
 .globl	RTTI_$SOMA_MUTATE_$$_TMUTATIONOP
 RTTI_$SOMA_MUTATE_$$_TMUTATIONOP:
 	.byte	3,11
-# [151] 
+# [175] 
 	.ascii	"TMutationOp"
 	.byte	1
 	.long	0,3
@@ -1772,33 +1772,33 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	1
 # ###################
 # function: SOMA_MUTATE_$$_MUTATEPOINTOPCODE$TGENOME$QWORD
-# [56:3]
+# [80:3]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll10
 	.byte	5
 	.uleb128	3
-	.byte	67
-# [57:14]
+	.byte	91
+# [81:14]
 	.byte	2
 	.uleb128	.Ll11-.Ll10
 	.byte	5
 	.uleb128	14
 	.byte	13
-# [58:3]
+# [82:3]
 	.byte	2
 	.uleb128	.Ll12-.Ll11
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [59:38]
+# [83:38]
 	.byte	2
 	.uleb128	.Ll13-.Ll12
 	.byte	5
 	.uleb128	38
 	.byte	13
-# [60:1]
+# [84:1]
 	.byte	2
 	.uleb128	.Ll14-.Ll13
 	.byte	5
@@ -1813,39 +1813,39 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	1
 # ###################
 # function: SOMA_MUTATE_$$_MUTATEPOINTIMM$TGENOME$QWORD$LONGINT
-# [68:3]
+# [92:3]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll16
 	.byte	5
 	.uleb128	3
-	.byte	79
-# [69:14]
+	.byte	103
+# [93:14]
 	.byte	2
 	.uleb128	.Ll17-.Ll16
 	.byte	5
 	.uleb128	14
 	.byte	13
-# [70:3]
+# [94:3]
 	.byte	2
 	.uleb128	.Ll18-.Ll17
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [72:33]
+# [96:33]
 	.byte	2
 	.uleb128	.Ll19-.Ll18
 	.byte	5
 	.uleb128	33
 	.byte	14
-# [73:19]
+# [97:19]
 	.byte	2
 	.uleb128	.Ll20-.Ll19
 	.byte	5
 	.uleb128	19
 	.byte	13
-# [74:1]
+# [98:1]
 	.byte	2
 	.uleb128	.Ll21-.Ll20
 	.byte	5
@@ -1860,51 +1860,51 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	1
 # ###################
 # function: SOMA_MUTATE_$$_MUTATENOPBLOCK$TGENOME$QWORD$LONGINT
-# [82:17]
+# [106:17]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll23
 	.byte	5
 	.uleb128	17
-	.byte	93
-# [83:3]
+	.byte	117
+# [107:3]
 	.byte	2
 	.uleb128	.Ll24-.Ll23
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [84:39]
+# [108:53]
 	.byte	2
 	.uleb128	.Ll25-.Ll24
 	.byte	5
-	.uleb128	39
+	.uleb128	53
 	.byte	13
-# [85:35]
+# [109:35]
 	.byte	2
 	.uleb128	.Ll26-.Ll25
 	.byte	5
 	.uleb128	35
 	.byte	13
-# [87:7]
+# [111:7]
 	.byte	2
 	.uleb128	.Ll27-.Ll26
 	.byte	5
 	.uleb128	7
 	.byte	14
-# [88:7]
+# [112:7]
 	.byte	2
 	.uleb128	.Ll28-.Ll27
 	.byte	13
-# [89:7]
+# [113:7]
 	.byte	2
 	.uleb128	.Ll29-.Ll28
 	.byte	13
-# [90:7]
+# [114:7]
 	.byte	2
 	.uleb128	.Ll30-.Ll29
 	.byte	13
-# [85:3]
+# [109:3]
 	.byte	2
 	.uleb128	.Ll31-.Ll30
 	.byte	5
@@ -1912,7 +1912,7 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	3
 	.sleb128	-5
 	.byte	1
-# [92:1]
+# [116:1]
 	.byte	2
 	.uleb128	.Ll32-.Ll31
 	.byte	5
@@ -1927,57 +1927,57 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	1
 # ###################
 # function: SOMA_MUTATE_$$_MUTATECOPYBLOCK$TGENOME$TGENOME$QWORD$LONGINT
-# [100:1]
+# [124:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll34
 	.byte	5
 	.uleb128	1
-	.byte	111
-# [101:17]
+	.byte	135
+# [125:17]
 	.byte	2
 	.uleb128	.Ll35-.Ll34
 	.byte	5
 	.uleb128	17
 	.byte	13
-# [102:3]
+# [126:3]
 	.byte	2
 	.uleb128	.Ll36-.Ll35
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [103:39]
+# [127:53]
 	.byte	2
 	.uleb128	.Ll37-.Ll36
 	.byte	5
-	.uleb128	39
+	.uleb128	53
 	.byte	13
-# [104:3]
+# [128:3]
 	.byte	2
 	.uleb128	.Ll38-.Ll37
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [105:39]
+# [129:53]
 	.byte	2
 	.uleb128	.Ll39-.Ll38
 	.byte	5
-	.uleb128	39
+	.uleb128	53
 	.byte	13
-# [107:28]
+# [131:28]
 	.byte	2
 	.uleb128	.Ll40-.Ll39
 	.byte	5
 	.uleb128	28
 	.byte	14
-# [108:9]
+# [132:9]
 	.byte	2
 	.uleb128	.Ll41-.Ll40
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [107:3]
+# [131:3]
 	.byte	2
 	.uleb128	.Ll42-.Ll41
 	.byte	5
@@ -1985,7 +1985,7 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	3
 	.sleb128	-1
 	.byte	1
-# [109:1]
+# [133:1]
 	.byte	2
 	.uleb128	.Ll43-.Ll42
 	.byte	5
@@ -2000,91 +2000,91 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	1
 # ###################
 # function: SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD
-# [120:1]
+# [144:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll45
 	.byte	5
 	.uleb128	1
-	.byte	131
-# [121:3]
+	.byte	155
+# [145:3]
 	.byte	2
 	.uleb128	.Ll46-.Ll45
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [123:5]
+# [147:5]
 	.byte	2
 	.uleb128	.Ll47-.Ll46
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [124:13]
+# [148:13]
 	.byte	2
 	.uleb128	.Ll48-.Ll47
 	.byte	5
 	.uleb128	13
 	.byte	13
-# [125:39]
+# [149:39]
 	.byte	2
 	.uleb128	.Ll49-.Ll48
 	.byte	5
 	.uleb128	39
 	.byte	13
-# [128:34]
+# [152:34]
 	.byte	2
 	.uleb128	.Ll50-.Ll49
 	.byte	5
 	.uleb128	34
 	.byte	15
-# [130:9]
+# [154:9]
 	.byte	2
 	.uleb128	.Ll51-.Ll50
 	.byte	5
 	.uleb128	9
 	.byte	14
-# [133:56]
+# [157:56]
 	.byte	2
 	.uleb128	.Ll52-.Ll51
 	.byte	5
 	.uleb128	56
 	.byte	15
-# [136:56]
+# [160:56]
 	.byte	2
 	.uleb128	.Ll53-.Ll52
 	.byte	15
-# [139:32]
+# [163:32]
 	.byte	2
 	.uleb128	.Ll54-.Ll53
 	.byte	5
 	.uleb128	32
 	.byte	15
-# [141:11]
+# [165:11]
 	.byte	2
 	.uleb128	.Ll55-.Ll54
 	.byte	5
 	.uleb128	11
 	.byte	14
-# [142:51]
+# [166:66]
 	.byte	2
 	.uleb128	.Ll56-.Ll55
 	.byte	5
-	.uleb128	51
+	.uleb128	66
 	.byte	13
-# [143:42]
+# [167:42]
 	.byte	2
 	.uleb128	.Ll57-.Ll56
 	.byte	5
 	.uleb128	42
 	.byte	13
-# [144:52]
+# [168:52]
 	.byte	2
 	.uleb128	.Ll58-.Ll57
 	.byte	5
 	.uleb128	52
 	.byte	13
-# [143:11]
+# [167:11]
 	.byte	2
 	.uleb128	.Ll59-.Ll58
 	.byte	5
@@ -2092,7 +2092,7 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	3
 	.sleb128	-1
 	.byte	1
-# [121:3]
+# [145:3]
 	.byte	2
 	.uleb128	.Ll60-.Ll59
 	.byte	5
@@ -2100,7 +2100,7 @@ RTTI_$SOMA_MUTATE_$$_TMUTATIONPARAMS$indirect:
 	.byte	3
 	.sleb128	-22
 	.byte	1
-# [148:1]
+# [172:1]
 	.byte	2
 	.uleb128	.Ll61-.Ll60
 	.byte	5
