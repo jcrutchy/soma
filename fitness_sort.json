@@ -1,0 +1,13 @@
+{
+  "name": "sort_integers",
+  "version": 1,
+  "setup": {
+    "input_count": 8,
+    "input_min": -50,
+    "input_max": 50
+  },
+  "criteria": [
+    { "metric": "array_sorted", "weight": 1.0 },
+    { "metric": "survival",     "weight": 0.2 }
+  ]
+}

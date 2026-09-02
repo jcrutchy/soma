@@ -3632,14 +3632,14 @@ RTTI_$SOMA_CORE_$$_def00000003$indirect:
 # Defs - End unit SOMA_TYPES has index 8
 # Defs - Begin unit WINDOWS has index 5
 # Defs - End unit WINDOWS has index 5
-# Defs - Begin unit SYSCONST has index 14
-# Defs - End unit SYSCONST has index 14
-# Defs - Begin unit WINDIRS has index 15
-# Defs - End unit WINDIRS has index 15
-# Defs - Begin unit SYSUTILS has index 13
-# Defs - End unit SYSUTILS has index 13
-# Defs - Begin unit MATH has index 12
-# Defs - End unit MATH has index 12
+# Defs - Begin unit SYSCONST has index 15
+# Defs - End unit SYSCONST has index 15
+# Defs - Begin unit WINDIRS has index 16
+# Defs - End unit WINDIRS has index 16
+# Defs - Begin unit SYSUTILS has index 14
+# Defs - End unit SYSUTILS has index 14
+# Defs - Begin unit MATH has index 13
+# Defs - End unit MATH has index 13
 # Defs - Begin unit SOMA_CORE has index 9
 # Defs - End unit SOMA_CORE has index 9
 # Defs - Begin Staticsymtable

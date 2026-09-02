@@ -294,6 +294,8 @@ main:
 	.quad	DEBUGEND_$SOMA_HYPERVISOR
 	.quad	DEBUGSTART_$SOMA_MUTATE
 	.quad	DEBUGEND_$SOMA_MUTATE
+	.quad	DEBUGSTART_$SOMA_FITNESS
+	.quad	DEBUGEND_$SOMA_FITNESS
 # End asmlist al_procedures
 # Begin asmlist al_globals
 
@@ -312,7 +314,7 @@ U_$P$SOMA_$$_OK:
 	.balign 8
 .globl	INITFINAL
 INITFINAL:
-	.quad	7,0
+	.quad	13,0
 	.quad	INIT$_$SYSTEM
 	.quad	0,0
 	.quad	FINALIZE$_$OBJPAS
@@ -323,25 +325,54 @@ INITFINAL:
 	.quad	FINALIZE$_$WINDIRS
 	.quad	INIT$_$SYSUTILS
 	.quad	FINALIZE$_$SYSUTILS
+	.quad	INIT$_$TYPINFO
+	.quad	FINALIZE$_$TYPINFO
+	.quad	INIT$_$VARIANTS
+	.quad	FINALIZE$_$VARIANTS
+	.quad	INIT$_$CLASSES
+	.quad	FINALIZE$_$CLASSES
+	.quad	INIT$_$FPJSON
+	.quad	FINALIZE$_$FPJSON
+	.quad	INIT$_$JSONSCANNER
+	.quad	FINALIZE$_$JSONSCANNER
+	.quad	INIT$_$JSONPARSER
+	.quad	FINALIZE$_$JSONPARSER
 	.quad	INIT$_$SOMA_HYPERVISOR
-	.quad	0
+	.quad	FINALIZE$_$SOMA_HYPERVISOR
 
 .section .data.n_FPC_THREADVARTABLES,"d"
 	.balign 8
 .globl	FPC_THREADVARTABLES
 FPC_THREADVARTABLES:
-	.long	1
+	.long	2
 	.quad	THREADVARLIST_$SYSTEM$indirect
+	.quad	THREADVARLIST_$CLASSES$indirect
 
 .section .rodata.n_FPC_RESOURCESTRINGTABLES,"d"
 	.balign 8
 .globl	FPC_RESOURCESTRINGTABLES
 FPC_RESOURCESTRINGTABLES:
-	.quad	2
+	.quad	10
 	.quad	RESSTR_$MATH_$$_START$indirect
 	.quad	RESSTR_$MATH_$$_END$indirect
 	.quad	RESSTR_$SYSCONST_$$_START$indirect
 	.quad	RESSTR_$SYSCONST_$$_END$indirect
+	.quad	RESSTR_$FPJSON_$$_START$indirect
+	.quad	RESSTR_$FPJSON_$$_END$indirect
+	.quad	RESSTR_$JSONPARSER_$$_START$indirect
+	.quad	RESSTR_$JSONPARSER_$$_END$indirect
+	.quad	RESSTR_$VARIANTS_$$_START$indirect
+	.quad	RESSTR_$VARIANTS_$$_END$indirect
+	.quad	RESSTR_$CONTNRS_$$_START$indirect
+	.quad	RESSTR_$CONTNRS_$$_END$indirect
+	.quad	RESSTR_$RTLCONSTS_$$_START$indirect
+	.quad	RESSTR_$RTLCONSTS_$$_END$indirect
+	.quad	RESSTR_$TYPINFO_$$_START$indirect
+	.quad	RESSTR_$TYPINFO_$$_END$indirect
+	.quad	RESSTR_$JSONSCANNER_$$_START$indirect
+	.quad	RESSTR_$JSONSCANNER_$$_END$indirect
+	.quad	RESSTR_$JSONREADER_$$_START$indirect
+	.quad	RESSTR_$JSONREADER_$$_END$indirect
 
 .section .data.n_FPC_WIDEINITTABLES,"d"
 	.balign 8
@@ -511,6 +542,7 @@ _$SOMA$_Ld13:
 # Symbol SOMA_CORE
 # Symbol SOMA_HYPERVISOR
 # Symbol SOMA_MUTATE
+# Symbol SOMA_FITNESS
 # Symbol SOMA
 # Symbol main
 # Symbol STATESIZE
@@ -580,22 +612,46 @@ _$SOMA$_Ld13:
 # Defs - End unit FPINTRES has index 7
 # Defs - Begin unit SOMA_TYPES has index 8
 # Defs - End unit SOMA_TYPES has index 8
-# Defs - Begin unit SYSCONST has index 14
-# Defs - End unit SYSCONST has index 14
-# Defs - Begin unit WINDIRS has index 15
-# Defs - End unit WINDIRS has index 15
-# Defs - Begin unit SYSUTILS has index 13
-# Defs - End unit SYSUTILS has index 13
-# Defs - Begin unit MATH has index 12
-# Defs - End unit MATH has index 12
+# Defs - Begin unit SYSCONST has index 15
+# Defs - End unit SYSCONST has index 15
+# Defs - Begin unit WINDIRS has index 16
+# Defs - End unit WINDIRS has index 16
+# Defs - Begin unit SYSUTILS has index 14
+# Defs - End unit SYSUTILS has index 14
+# Defs - Begin unit MATH has index 13
+# Defs - End unit MATH has index 13
 # Defs - Begin unit SOMA_CORE has index 9
 # Defs - End unit SOMA_CORE has index 9
 # Defs - Begin unit SOMA_MUTATE has index 11
 # Defs - End unit SOMA_MUTATE has index 11
+# Defs - Begin unit RTLCONSTS has index 22
+# Defs - End unit RTLCONSTS has index 22
+# Defs - Begin unit TYPINFO has index 23
+# Defs - End unit TYPINFO has index 23
+# Defs - Begin unit TYPES has index 25
+# Defs - End unit TYPES has index 25
+# Defs - Begin unit VARUTILS has index 24
+# Defs - End unit VARUTILS has index 24
+# Defs - Begin unit VARIANTS has index 20
+# Defs - End unit VARIANTS has index 20
+# Defs - Begin unit CLASSES has index 19
+# Defs - End unit CLASSES has index 19
+# Defs - Begin unit CONTNRS has index 21
+# Defs - End unit CONTNRS has index 21
+# Defs - Begin unit FPJSON has index 17
+# Defs - End unit FPJSON has index 17
+# Defs - Begin unit JSONSCANNER has index 26
+# Defs - End unit JSONSCANNER has index 26
+# Defs - Begin unit JSONREADER has index 27
+# Defs - End unit JSONREADER has index 27
+# Defs - Begin unit JSONPARSER has index 18
+# Defs - End unit JSONPARSER has index 18
+# Defs - Begin unit SOMA_FITNESS has index 12
+# Defs - End unit SOMA_FITNESS has index 12
 # Defs - Begin unit SOMA_HYPERVISOR has index 10
 # Defs - End unit SOMA_HYPERVISOR has index 10
-# Defs - Begin unit SYSINIT has index 16
-# Defs - End unit SYSINIT has index 16
+# Defs - Begin unit SYSINIT has index 28
+# Defs - End unit SYSINIT has index 28
 # Defs - Begin Staticsymtable
 # Defs - End Staticsymtable
 	.byte	0

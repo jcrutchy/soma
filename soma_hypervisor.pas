@@ -5,7 +5,8 @@ unit soma_hypervisor;
 interface
 
 uses
-  soma_types, soma_core, soma_mutate,
+  soma_types, soma_core, soma_mutate, soma_fitness,
+  fpjson, jsonparser,
   Windows,
   SysUtils;
 
@@ -58,6 +59,7 @@ var
   StartTime:        UInt64;
   StatusThreadID:   TThreadID;
   GlobalRNG:        UInt64;
+  FitnessTarget:    TFitnessTarget;  // loaded once in InitHypervisor, read-only after that
 
 procedure HypervisorInit(colony_count: Integer);
 procedure HypervisorRun;
@@ -161,30 +163,16 @@ end;
 // Fitness evaluation
 //------------------------------------------------------------
 
-// First real fitness function: reward genomes that run longer without
-// faulting, and that leave a non-trivial amount of work done on the
-// integer stack. This is deliberately crude - just enough signal to
-// prove selection pressure actually does something before the JSON
-// fitness pipeline exists. Replace this once soma_fitness.pas lands.
+// Replaces the old crude survival+activity proxy. Delegates entirely to
+// soma_fitness.pas: FitnessTarget is loaded once (see InitHypervisor) from
+// a JSON file naming a weighted pipeline of primitives, so changing what
+// a genome is scored against no longer requires touching this unit at all.
 function EvaluateFitness(state: PVMState): Double;
 var
-  survival_score: Double;
-  activity_score: Double;
+  fr: TFitnessResult;
 begin
-  // reward instructions executed before halting (proxy: final ip)
-  survival_score := state^.ip / GENOME_SIZE;
-  if survival_score > 1.0 then survival_score := 1.0;
-
-  // reward genomes that did *something* to the integer stack
-  // (isp > 0 means at least one value was produced and not all popped)
-  activity_score := state^.isp / STACK_SIZE;
-  if activity_score > 1.0 then activity_score := 1.0;
-
-  // clean halt (not a fault) gets a flat bonus
-  if (state^.halt_reason = HR_HALT) or (state^.halt_reason = HR_YIELD) then
-    Result := (survival_score * 0.5) + (activity_score * 0.3) + 0.2
-  else
-    Result := (survival_score * 0.5) + (activity_score * 0.3);
+  fr := EvaluateFitnessTarget(state^, FitnessTarget, []);
+  Result := fr.score;
 end;
 
 //------------------------------------------------------------
@@ -283,9 +271,14 @@ begin
     // --- evaluate offspring ---
     state^.genome       := offspring;
     state^.ip           := 0;
-    state^.isp          := 0;
     state^.fsp          := 0;
     state^.halt_reason  := HR_NONE;
+
+    // Seeds istack[0..input_count-1] with the array to sort AND sets isp
+    // -- must happen after the ip/fsp/halt_reason reset above but replaces
+    // the old flat "isp := 0", since the genome needs to see its input
+    // already on the stack when execution starts.
+    SeedFitnessInput(state^, FitnessTarget, local_rng);
 
     t0 := ReadTSC;
     Execute(state^);
@@ -369,6 +362,12 @@ begin
   InitCriticalSection(HyperCS);
   InitSharedMemory;
   StartTime := ReadTSC;
+
+  // Loaded once here, read-only for the life of the run. Change what
+  // genomes are scored against by editing fitness_sort.json and
+  // restarting -- no recompile needed.
+  FitnessTarget := LoadFitnessTarget('fitness_sort.json');
+  WriteLn('  Fitness target: ', FitnessTarget.name, ' v', FitnessTarget.version);
 
   for i := 0 to ColonyCount-1 do
   begin
@@ -464,3 +463,4 @@ initialization
   BestGenomeIdx  := 0;
 
 end.
+

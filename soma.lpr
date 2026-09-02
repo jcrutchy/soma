@@ -5,7 +5,7 @@ program soma;
 uses
   soma_types,
   soma_core,
-  soma_hypervisor, soma_mutate;
+  soma_hypervisor, soma_mutate, soma_fitness;
 
 var
   StateSize: Integer;
