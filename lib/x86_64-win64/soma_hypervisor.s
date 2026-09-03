@@ -22,7 +22,7 @@ SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER:
 .seh_proc SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER
 .Ll1:
 # [soma_hypervisor.pas]
-# [77] begin
+# [86] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	leaq	-32(%rsp),%rsp
@@ -35,20 +35,20 @@ SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER:
 	movq	%rdx,%rbx
 # Var raw located in register rbx
 .Ll2:
-# [78] raw    := GetMem(size + 63);
+# [87] raw    := GetMem(size + 63);
 	addq	$63,%rcx
 	call	SYSTEM_$$_GETMEM$QWORD$$POINTER
 	movq	%rax,(%rbx)
 # Var p located in register rax
 .Ll3:
-# [80] p      := (p + 63) and not PtrUInt(63);
+# [89] p      := (p + 63) and not PtrUInt(63);
 	addq	$63,%rax
 	andq	$-64,%rax
 # Var p located in register rax
 # Var $result located in register rax
 # Var p located in register rax
 .Ll4:
-# [82] end;
+# [91] end;
 	nop
 	leaq	32(%rsp),%rsp
 	popq	%rbx
@@ -64,7 +64,7 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 .Lc4:
 .seh_proc SOMA_HYPERVISOR_$$_INITSHAREDMEMORY
 .Ll6:
-# [91] begin
+# [100] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	leaq	-48(%rsp),%rsp
@@ -72,10 +72,10 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 .seh_stackalloc 48
 .seh_endprologue
 .Ll7:
-# [97] );
+# [106] );
 	leaq	_$SOMA_HYPERVISOR$_Ld1(%rip),%rax
 .Ll8:
-# [92] ShmemHandle := CreateFileMapping(
+# [101] ShmemHandle := CreateFileMapping(
 	movq	%rax,40(%rsp)
 	movl	$64,32(%rsp)
 	xorl	%r9d,%r9d
@@ -85,11 +85,11 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 	call	_$dll$kernel32$CreateFileMappingA
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip)
 .Ll9:
-# [98] if ShmemHandle = 0 then
+# [107] if ShmemHandle = 0 then
 	testq	%rax,%rax
 	jne	.Lj8
 .Ll10:
-# [100] WriteLn('WARNING: Could not create shared memory: ', GetLastError);
+# [109] WriteLn('WARNING: Could not create shared memory: ', GetLastError);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld2(%rip),%r8
@@ -107,15 +107,15 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 	call	fpc_writeln_end
 	call	fpc_iocheck
 .Ll11:
-# [101] Shmem := nil;
+# [110] Shmem := nil;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
 .Ll12:
-# [102] Exit;
+# [111] Exit;
 	jmp	.Lj5
 	.balign 4,0x90
 .Lj8:
 .Ll13:
-# [104] Shmem := MapViewOfFile(ShmemHandle, FILE_MAP_ALL_ACCESS, 0, 0, SizeOf(TSOMAShmem));
+# [113] Shmem := MapViewOfFile(ShmemHandle, FILE_MAP_ALL_ACCESS, 0, 0, SizeOf(TSOMAShmem));
 	movq	$64,32(%rsp)
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip),%rcx
 	xorl	%r9d,%r9d
@@ -124,11 +124,11 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 	call	_$dll$kernel32$MapViewOfFile
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
 .Ll14:
-# [105] if Shmem = nil then
+# [114] if Shmem = nil then
 	testq	%rax,%rax
 	jne	.Lj10
 .Ll15:
-# [106] WriteLn('WARNING: Could not map shared memory: ', GetLastError)
+# [115] WriteLn('WARNING: Could not map shared memory: ', GetLastError)
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld3(%rip),%r8
@@ -148,19 +148,19 @@ SOMA_HYPERVISOR_$$_INITSHAREDMEMORY:
 	jmp	.Lj11
 .Lj10:
 .Ll16:
-# [109] FillChar(Shmem^, SizeOf(TSOMAShmem), 0);
+# [118] FillChar(Shmem^, SizeOf(TSOMAShmem), 0);
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$64,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
 .Ll17:
-# [110] Shmem^.magic := $534F4D41;
+# [119] Shmem^.magic := $534F4D41;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movl	$1397706049,(%rax)
 .Lj11:
 .Lj5:
 .Ll18:
-# [112] end;
+# [121] end;
 	nop
 	leaq	48(%rsp),%rsp
 	popq	%rbx
@@ -176,13 +176,13 @@ SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY:
 .Lc7:
 .seh_proc SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY
 .Ll20:
-# [115] begin
+# [124] begin
 	leaq	-40(%rsp),%rsp
 .Lc9:
 .seh_stackalloc 40
 .seh_endprologue
 .Ll21:
-# [116] if Shmem <> nil then UnmapViewOfFile(Shmem);
+# [125] if Shmem <> nil then UnmapViewOfFile(Shmem);
 	cmpq	$0,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
 	je	.Lj15
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rcx
@@ -190,7 +190,7 @@ SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY:
 	.balign 4,0x90
 .Lj15:
 .Ll22:
-# [117] if ShmemHandle <> 0 then CloseHandle(ShmemHandle);
+# [126] if ShmemHandle <> 0 then CloseHandle(ShmemHandle);
 	cmpq	$0,U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip)
 	je	.Lj17
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip),%rcx
@@ -198,7 +198,7 @@ SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY:
 	.balign 4,0x90
 .Lj17:
 .Ll23:
-# [118] end;
+# [127] end;
 	nop
 	leaq	40(%rsp),%rsp
 	ret
@@ -213,7 +213,7 @@ SOMA_HYPERVISOR_$$_READTSC$$QWORD:
 .Lc10:
 .seh_proc SOMA_HYPERVISOR_$$_READTSC$$QWORD
 .Ll25:
-# [123] begin
+# [132] begin
 	pushq	%rbp
 .seh_pushreg %rbp
 .Lc12:
@@ -227,23 +227,23 @@ SOMA_HYPERVISOR_$$_READTSC$$QWORD:
 # Var r located at rbp-16, size=OS_64
 #  CPU ATHLON64
 .Ll26:
-# [125] rdtsc
+# [134] rdtsc
 	rdtsc
 .Ll27:
-# [126] shl rdx, 32
+# [135] shl rdx, 32
 	shlq	$32,%rdx
 .Ll28:
-# [127] or  rax, rdx
+# [136] or  rax, rdx
 	orq	%rdx,%rax
 .Ll29:
-# [128] mov r, rax
+# [137] mov r, rax
 	movq	%rax,-16(%rbp)
 #  CPU ATHLON64
 .Ll30:
-# [130] Result := r;
+# [139] Result := r;
 	movq	-16(%rbp),%rax
 .Ll31:
-# [131] end;
+# [140] end;
 	leaq	(%rbp),%rsp
 	popq	%rbp
 	ret
@@ -258,38 +258,38 @@ SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY:
 .Lc15:
 .seh_proc SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY
 .Ll33:
-# [134] begin
+# [143] begin
 	leaq	-40(%rsp),%rsp
 .Lc17:
 .seh_stackalloc 40
 .seh_endprologue
 .Ll34:
-# [135] if Shmem = nil then Exit;
+# [144] if Shmem = nil then Exit;
 	cmpq	$0,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
 	je	.Lj20
 	.balign 4,0x90
 .Ll35:
-# [136] Shmem^.generation      := Generation;
+# [145] Shmem^.generation      := Generation;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movq	U_$SOMA_HYPERVISOR_$$_GENERATION(%rip),%rdx
 	movq	%rdx,4(%rax)
 .Ll36:
-# [137] Shmem^.active_colonies := ColonyCount;
+# [146] Shmem^.active_colonies := ColonyCount;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%edx
 	movl	%edx,12(%rax)
 .Ll37:
-# [138] Shmem^.best_fitness    := BestFitness;
+# [147] Shmem^.best_fitness    := BestFitness;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movq	U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip),%rdx
 	movq	%rdx,16(%rax)
 .Ll38:
-# [139] Shmem^.avg_fitness     := AvgFitness;
+# [148] Shmem^.avg_fitness     := AvgFitness;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movq	U_$SOMA_HYPERVISOR_$$_AVGFITNESS(%rip),%rdx
 	movq	%rdx,24(%rax)
 .Ll39:
-# [140] Shmem^.uptime_secs     := (ReadTSC - StartTime) div 3000000000;
+# [149] Shmem^.uptime_secs     := (ReadTSC - StartTime) div 3000000000;
 	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	movq	%rax,%rdx
 	subq	U_$SOMA_HYPERVISOR_$$_STARTTIME(%rip),%rdx
@@ -299,12 +299,12 @@ SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY:
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movq	%rdx,44(%rax)
 .Ll40:
-# [141] Shmem^.codon_count     := 0;
+# [150] Shmem^.codon_count     := 0;
 	movq	U_$SOMA_HYPERVISOR_$$_SHMEM(%rip),%rax
 	movl	$0,40(%rax)
 .Lj20:
 .Ll41:
-# [142] end;
+# [151] end;
 	nop
 	leaq	40(%rsp),%rsp
 	ret
@@ -320,18 +320,18 @@ SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD:
 # Var i located in register eax
 # Var G located in register rcx
 .Ll43:
-# [151] begin
+# [160] begin
 	movq	%rdx,%r8
 # Var rng located in register r8
 # Var i located in register r9d
 .Ll44:
-# [152] for i := 0 to GENOME_SIZE-1 do
+# [161] for i := 0 to GENOME_SIZE-1 do
 	movl	$-1,%r9d
 	.balign 8,0x90
 .Lj26:
 	addl	$1,%r9d
 .Ll45:
-# [154] XorShift64(rng);
+# [163] XorShift64(rng);
 	movq	(%r8),%rax
 	shlq	$13,%rax
 	xorq	(%r8),%rax
@@ -343,7 +343,7 @@ SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD:
 	xorq	(%r8),%rax
 	movq	%rax,(%r8)
 .Ll46:
-# [155] G[i].opcode := VALID_OPCODES[rng mod VALID_OPCODE_COUNT];
+# [164] G[i].opcode := VALID_OPCODES[rng mod VALID_OPCODE_COUNT];
 	movq	%rax,%r10
 	movq	$-825973615240726191,%rax
 	mulq	%r10
@@ -356,15 +356,15 @@ SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD:
 	movw	(%rdx,%r10,2),%dx
 	movw	%dx,(%rcx,%rax,8)
 .Ll47:
-# [156] G[i].flags  := 0;
+# [165] G[i].flags  := 0;
 	movl	%r9d,%eax
 	movb	$0,2(%rcx,%rax,8)
 .Ll48:
-# [157] G[i].pad    := 0;
+# [166] G[i].pad    := 0;
 	movl	%r9d,%eax
 	movb	$0,3(%rcx,%rax,8)
 .Ll49:
-# [158] G[i].imm    := Int32((rng shr 32) mod 128) - 64;
+# [167] G[i].imm    := Int32((rng shr 32) mod 128) - 64;
 	movq	(%r8),%rax
 	shrq	$32,%rax
 	andl	$127,%eax
@@ -375,7 +375,7 @@ SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD:
 	cmpl	$4095,%r9d
 	jnge	.Lj26
 .Ll51:
-# [160] end;
+# [169] end;
 	ret
 .Lc19:
 .Lt11:
@@ -388,7 +388,7 @@ SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE:
 # Temps allocated between rsp+152 and rsp+160
 .seh_proc SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE
 .Ll53:
-# [173] begin
+# [182] begin
 	leaq	-168(%rsp),%rsp
 .Lc22:
 .seh_stackalloc 168
@@ -398,7 +398,7 @@ SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE:
 	movq	%rcx,%rax
 # Var state located in register rax
 .Ll54:
-# [174] fr := EvaluateFitnessTarget(state^, FitnessTarget, []);
+# [183] fr := EvaluateFitnessTarget(state^, FitnessTarget, []);
 	movq	$-1,32(%rsp)
 	leaq	152(%rsp),%r9
 	movq	%rax,%rdx
@@ -408,10 +408,10 @@ SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE:
 	call	SOMA_FITNESS_$$_EVALUATEFITNESSTARGET$TVMSTATE$TFITNESSTARGET$array_of_INT64$$TFITNESSRESULT
 # Var $result located in register xmm0
 .Ll55:
-# [175] Result := fr.score;
+# [184] Result := fr.score;
 	movsd	40(%rsp),%xmm0
 .Ll56:
-# [176] end;
+# [185] end;
 	nop
 	leaq	168(%rsp),%rsp
 	ret
@@ -427,36 +427,36 @@ SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT:
 # Var $result located in register eax
 # Var i located in register eax
 # Var worst located in register xmm0
-# [188] begin
+# [197] begin
 # Var $result located in register eax
 .Ll58:
-# [189] Result := 0;
+# [198] Result := 0;
 	xorl	%eax,%eax
 # Var worst located in register xmm0
 .Ll59:
-# [190] worst  := PopFitness[0];
+# [199] worst  := PopFitness[0];
 	movsd	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%xmm0
 # Var i located in register edx
 .Ll60:
-# [191] for i := 1 to POPULATION_SIZE-1 do
+# [200] for i := 1 to POPULATION_SIZE-1 do
 	xorl	%edx,%edx
 	.balign 8,0x90
 .Lj34:
 	addl	$1,%edx
 .Ll61:
-# [192] if PopFitness[i] < worst then
+# [201] if PopFitness[i] < worst then
 	movl	%edx,%ecx
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r8
 	comisd	(%r8,%rcx,8),%xmm0
 	jp	.Lj38
 	jna	.Lj38
 .Ll62:
-# [194] worst  := PopFitness[i];
+# [203] worst  := PopFitness[i];
 	movl	%edx,%ecx
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r8
 	movsd	(%r8,%rcx,8),%xmm0
 .Ll63:
-# [195] Result := i;
+# [204] Result := i;
 	movl	%edx,%eax
 	.balign 4,0x90
 .Lj38:
@@ -464,7 +464,7 @@ SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT:
 	cmpl	$127,%edx
 	jnge	.Lj34
 .Ll65:
-# [197] end;
+# [206] end;
 	ret
 .Lc24:
 .Lt13:
@@ -481,9 +481,9 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 # Var best_fit located in register xmm0
 # Var rng located in register rcx
 # Var k located in register edx
-# [206] begin
+# [215] begin
 .Ll67:
-# [207] XorShift64(rng);
+# [216] XorShift64(rng);
 	movq	(%rcx),%rax
 	shlq	$13,%rax
 	xorq	(%rcx),%rax
@@ -495,18 +495,18 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 	xorq	(%rcx),%rax
 	movq	%rax,(%rcx)
 .Ll68:
-# [208] best_idx := rng mod POPULATION_SIZE;
+# [217] best_idx := rng mod POPULATION_SIZE;
 	movl	(%rcx),%eax
 	andl	$127,%eax
 # Var best_idx located in register eax
 .Ll69:
-# [209] best_fit := PopFitness[best_idx];
+# [218] best_fit := PopFitness[best_idx];
 	movl	%eax,%r8d
 # Var best_fit located in register xmm0
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r9
 	movsd	(%r9,%r8,8),%xmm0
 .Ll70:
-# [211] for i := 1 to k-1 do
+# [220] for i := 1 to k-1 do
 	subl	$1,%edx
 	cmpl	$1,%edx
 	jnge	.Lj44
@@ -515,7 +515,7 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 .Lj45:
 	addl	$1,%r8d
 .Ll71:
-# [213] XorShift64(rng);
+# [222] XorShift64(rng);
 	movq	(%rcx),%r9
 	shlq	$13,%r9
 	xorq	(%rcx),%r9
@@ -527,24 +527,24 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 	xorq	(%rcx),%r9
 	movq	%r9,(%rcx)
 .Ll72:
-# [214] candidate := rng mod POPULATION_SIZE;
+# [223] candidate := rng mod POPULATION_SIZE;
 	movl	(%rcx),%r9d
 	andl	$127,%r9d
 	movl	%r9d,%r10d
 .Ll73:
-# [215] if PopFitness[candidate] > best_fit then
+# [224] if PopFitness[candidate] > best_fit then
 	andl	%r9d,%r9d
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r11
 	comisd	(%r11,%r9,8),%xmm0
 	jp	.Lj50
 	jnb	.Lj50
 .Ll74:
-# [217] best_fit := PopFitness[candidate];
+# [226] best_fit := PopFitness[candidate];
 	movl	%r10d,%r9d
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r11
 	movsd	(%r11,%r9,8),%xmm0
 .Ll75:
-# [218] best_idx := candidate;
+# [227] best_idx := candidate;
 	movl	%r10d,%eax
 	.balign 4,0x90
 .Lj50:
@@ -556,7 +556,7 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 # Var $result located in register eax
 # Var best_idx located in register eax
 .Ll77:
-# [223] end;
+# [232] end;
 	ret
 .Lc26:
 .Lt14:
@@ -566,10 +566,10 @@ SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT:
 	.balign 16,0x90
 SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 .Lc27:
-# Temps allocated between rsp+32816 and rsp+32832
+# Temps allocated between rsp+34976 and rsp+34992
 .seh_proc SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64
 .Ll79:
-# [238] begin
+# [250] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rdi
@@ -585,14 +585,14 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	pushq	%r15
 .seh_pushreg %r15
 	movl	$8,%r10d
-.Lj62:
+.Lj65:
 	leaq	-4096(%rsp),%rsp
 	movl	%eax,(%rsp)
 	subq	$1,%r10
-	jne	.Lj62
-	leaq	-64(%rsp),%rsp
+	jne	.Lj65
+	leaq	-2224(%rsp),%rsp
 .Lc29:
-.seh_stackalloc 32832
+.seh_stackalloc 34992
 .seh_endprologue
 # Var $result located in register rax
 # Var col located in register rax
@@ -603,17 +603,20 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 # Var worst_idx located in register r12d
 # Var local_rng located at rsp+40, size=OS_64
 # Var offspring located at rsp+48, size=OS_NO
+# Var seeded_input located at rsp+32816, size=OS_NO
+# Var fit_result located at rsp+34864, size=OS_NO
+# Var dbg_i located in register ebx
 # Var param located in register rcx
 # Var col located in register rcx
 # Var param located in register rcx
 # Var col located in register rcx
 # Var state located in register r8
 .Ll80:
-# [240] state := col^.state;
+# [252] state := col^.state;
 	movq	8(%rcx),%r8
 .Ll81:
-# [242] local_rng := UInt64(col^.colony_id + 1) * $6C62272E07BB0142;
-	movq	%rcx,32816(%rsp)
+# [254] local_rng := UInt64(col^.colony_id + 1) * $6C62272E07BB0142;
+	movq	%rcx,34976(%rsp)
 # Var col located in register rax
 	movq	%rcx,%rdx
 	movslq	28(%rdx),%rax
@@ -622,29 +625,29 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	imulq	%rax,%rdx
 	movq	%rdx,40(%rsp)
 .Ll82:
-# [243] state^.rng_state := local_rng;
-	movq	%r8,32824(%rsp)
+# [255] state^.rng_state := local_rng;
+	movq	%r8,34984(%rsp)
 # Var state located in register rax
 	movq	40(%rsp),%rdx
-	movq	32824(%rsp),%rax
+	movq	34984(%rsp),%rax
 	movq	%rdx,4376(%rax)
 .Ll83:
-# [245] while Running do
+# [257] while Running do
 	jmp	.Lj55
 	.balign 8,0x90
 .Lj54:
 .Ll84:
-# [265] EnterCriticalSection(HyperCS);
+# [277] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
 .Ll85:
-# [266] parent_idx := TournamentSelect(local_rng, 4);
+# [278] parent_idx := TournamentSelect(local_rng, 4);
 	leaq	40(%rsp),%rcx
 	movl	$4,%edx
 	call	SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT
 	movl	%eax,%r13d
 .Ll86:
-# [267] offspring  := Population[parent_idx];
+# [279] offspring  := Population[parent_idx];
 	andl	%eax,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
@@ -654,227 +657,119 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	rep
 	movsq
 .Ll87:
-# [268] MutateGenome(offspring, Population, local_rng);
+# [280] MutateGenome(offspring, Population, local_rng);
 	leaq	40(%rsp),%r9
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
 	leaq	48(%rsp),%rcx
 	movl	$127,%r8d
 	call	SOMA_MUTATE_$$_MUTATEGENOME$TGENOME$array_of_TGENOME$QWORD
 .Ll88:
-# [269] LeaveCriticalSection(HyperCS);
+# [281] LeaveCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$LeaveCriticalSection
 .Ll89:
-# [272] state^.genome       := offspring;
-	movq	32824(%rsp),%rax
+# [284] state^.genome       := offspring;
+	movq	34984(%rsp),%rax
 	leaq	4392(%rax),%rdi
 	leaq	48(%rsp),%rsi
 	movl	$4096,%ecx
 	rep
 	movsq
 .Ll90:
-# [273] state^.ip           := 0;
-	movq	32824(%rsp),%rax
+# [285] state^.ip           := 0;
+	movq	34984(%rsp),%rax
 	movq	$0,4368(%rax)
 .Ll91:
-# [274] state^.fsp          := 0;
-	movq	32824(%rsp),%rax
+# [286] state^.fsp          := 0;
+	movq	34984(%rsp),%rax
 	movq	$0,4360(%rax)
 .Ll92:
-# [275] state^.halt_reason  := HR_NONE;
-	movq	32824(%rsp),%rax
+# [287] state^.halt_reason  := HR_NONE;
+	movq	34984(%rsp),%rax
 	movq	$0,4384(%rax)
 .Ll93:
-# [281] SeedFitnessInput(state^, FitnessTarget, local_rng);
-	movq	32824(%rsp),%rcx
+# [293] SeedFitnessInput(state^, FitnessTarget, local_rng);
+	movq	34984(%rsp),%rcx
 	leaq	40(%rsp),%r8
 	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%rdx
 	call	SOMA_FITNESS_$$_SEEDFITNESSINPUT$TVMSTATE$TFITNESSTARGET$QWORD
 .Ll94:
-# [283] t0 := ReadTSC;
-	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
-	movq	%rax,%r15
+# [299] for dbg_i := 0 to FitnessTarget.input_count - 1 do
+	movl	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET+12(%rip),%eax
+	leal	-1(%eax),%ecx
+	testl	%ecx,%ecx
+	jnge	.Lj58
+	movl	$-1,%ebx
+	.balign 8,0x90
+.Lj59:
+	addl	$1,%ebx
 .Ll95:
-# [284] Execute(state^);
-	movq	32824(%rsp),%rcx
-	call	SOMA_CORE_$$_EXECUTE$TVMSTATE
+# [300] seeded_input[dbg_i] := state^.istack[dbg_i];
+	movl	%ebx,%eax
+	movl	%ebx,%r8d
+	movq	34984(%rsp),%rdx
+	movq	256(%rdx,%rax,8),%rax
+	movq	%rax,32816(%rsp,%r8,8)
 .Ll96:
-# [285] t1 := ReadTSC;
-	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
-	movq	%rax,%r14
-.Ll97:
-# [287] col^.exec_cycles := t1 - t0;
-	subq	%r15,%rax
-	movq	32816(%rsp),%rdx
-	movq	%rax,40(%rdx)
-.Ll98:
-# [288] col^.fitness      := EvaluateFitness(state);
-	movq	32824(%rsp),%rcx
-	call	SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE
-	movq	32816(%rsp),%rdx
-	movsd	%xmm0,32(%rdx)
-.Ll99:
-# [289] col^.generation    := Generation;
-	movq	U_$SOMA_HYPERVISOR_$$_GENERATION(%rip),%rax
-	movq	32816(%rsp),%rdx
-	movq	%rax,48(%rdx)
-.Ll100:
-# [292] if Generation < 5 then
-	cmpq	$5,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-	jnb	.Lj58
-.Ll101:
-# [294] EnterCriticalSection(HyperCS);
-	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
-	call	_$dll$kernel32$EnterCriticalSection
-.Ll102:
-# [295] Write('  [dbg gen=', Generation, '] input_count=', FitnessTarget.input_count,
-	call	fpc_get_output
-	movq	%rax,%rbx
-	leaq	_$SOMA_HYPERVISOR$_Ld4(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	U_$SOMA_HYPERVISOR_$$_GENERATION(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_uint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld5(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movslq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET+12(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld6(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	256(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	movl	$44,%r8d
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_char
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	264(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	movl	$44,%r8d
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_char
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	272(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	movl	$44,%r8d
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_char
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	280(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld7(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	4352(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld8(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	4368(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_sint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld9(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	32824(%rsp),%rax
-	movq	4384(%rax),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_uint
-	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld10(%rip),%r8
-	movq	%rbx,%rdx
-	xorl	%ecx,%ecx
-	call	fpc_write_text_shortstr
-	call	fpc_iocheck
-	movq	32816(%rsp),%rax
-	movq	32(%rax),%rdx
-	movq	%rdx,32(%rsp)
-	movq	%rbx,%r9
-	xorl	%r8d,%r8d
-	movl	$4,%edx
-	movl	$1,%ecx
-	call	fpc_write_text_float
-	call	fpc_iocheck
-	movq	%rbx,%rcx
-	call	fpc_write_end
-	call	fpc_iocheck
-.Ll103:
-# [301] WriteLn;
-	call	fpc_get_output
-	movq	%rax,%rcx
-	call	fpc_writeln_end
-	call	fpc_iocheck
-.Ll104:
-# [302] LeaveCriticalSection(HyperCS);
-	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
-	call	_$dll$kernel32$LeaveCriticalSection
+	cmpl	%ebx,%ecx
+	jnle	.Lj59
 	.balign 4,0x90
 .Lj58:
-.Ll105:
-# [306] EnterCriticalSection(HyperCS);
+.Ll97:
+# [302] t0 := ReadTSC;
+	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
+	movq	%rax,%r15
+.Ll98:
+# [303] Execute(state^);
+	movq	34984(%rsp),%rcx
+	call	SOMA_CORE_$$_EXECUTE$TVMSTATE
+.Ll99:
+# [304] t1 := ReadTSC;
+	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
+	movq	%rax,%r14
+.Ll100:
+# [306] col^.exec_cycles := t1 - t0;
+	movq	%r14,%rdx
+	subq	%r15,%rdx
+	movq	34976(%rsp),%rax
+	movq	%rdx,40(%rax)
+.Ll101:
+# [307] fit_result        := EvaluateFitnessTarget(state^, FitnessTarget, seeded_input);
+	movq	$255,32(%rsp)
+	movq	34984(%rsp),%rdx
+	leaq	32816(%rsp),%r9
+	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%r8
+	leaq	34864(%rsp),%rcx
+	call	SOMA_FITNESS_$$_EVALUATEFITNESSTARGET$TVMSTATE$TFITNESSTARGET$array_of_INT64$$TFITNESSRESULT
+.Ll102:
+# [308] col^.fitness      := fit_result.score;
+	movq	34864(%rsp),%rax
+	movq	34976(%rsp),%rdx
+	movq	%rax,32(%rdx)
+.Ll103:
+# [309] col^.generation    := Generation;
+	movq	U_$SOMA_HYPERVISOR_$$_GENERATION(%rip),%rdx
+	movq	34976(%rsp),%rax
+	movq	%rdx,48(%rax)
+.Ll104:
+# [312] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
-.Ll106:
-# [307] worst_idx := FindWorstIdx;
+.Ll105:
+# [313] worst_idx := FindWorstIdx;
 	call	SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT
 	movl	%eax,%r12d
-.Ll107:
-# [308] if col^.fitness > PopFitness[worst_idx] then
+.Ll106:
+# [314] if col^.fitness > PopFitness[worst_idx] then
 	movl	%r12d,%edx
-	movq	32816(%rsp),%rax
+	movq	34976(%rsp),%rax
 	movsd	32(%rax),%xmm0
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rax
 	comisd	(%rax,%rdx,8),%xmm0
-	jp	.Lj60
-	jna	.Lj60
-.Ll108:
-# [310] Population[worst_idx] := offspring;
+	jp	.Lj63
+	jna	.Lj63
+.Ll107:
+# [316] Population[worst_idx] := offspring;
 	movl	%r12d,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
@@ -883,34 +778,34 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 	movl	$4096,%ecx
 	rep
 	movsq
-.Ll109:
-# [311] PopFitness[worst_idx] := col^.fitness;
-	movl	%r12d,%eax
+.Ll108:
+# [317] PopFitness[worst_idx] := col^.fitness;
+	movl	%r12d,%edx
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%r8
-	movq	32816(%rsp),%rdx
-	movq	32(%rdx),%rcx
-	movq	%rcx,(%r8,%rax,8)
+	movq	34976(%rsp),%rax
+	movq	32(%rax),%rcx
+	movq	%rcx,(%r8,%rdx,8)
 	.balign 4,0x90
-.Lj60:
-.Ll110:
-# [313] Inc(Generation);
+.Lj63:
+.Ll109:
+# [319] Inc(Generation);
 	addq	$1,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-.Ll111:
-# [314] LeaveCriticalSection(HyperCS);
+.Ll110:
+# [320] LeaveCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$LeaveCriticalSection
 .Lj55:
-.Ll112:
+.Ll111:
 	cmpb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
 	jne	.Lj54
 # Var $result located in register rax
-.Ll113:
-# [317] Result := 0;
+.Ll112:
+# [323] Result := 0;
 	xorl	%eax,%eax
-.Ll114:
-# [318] end;
+.Ll113:
+# [324] end;
 	nop
-	leaq	32832(%rsp),%rsp
+	leaq	34992(%rsp),%rsp
 	popq	%r15
 	popq	%r14
 	popq	%r13
@@ -922,109 +817,317 @@ SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64:
 .seh_endproc
 .Lc28:
 .Lt15:
-.Ll115:
+.Ll114:
 
 .section .text.n_soma_hypervisor_$$_statusthreadproc$pointer$$int64,"x"
 	.balign 16,0x90
 SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 .Lc30:
 .seh_proc SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64
-.Ll116:
-# [328] begin
+.Ll115:
+# [339] begin
 	pushq	%rbx
 .seh_pushreg %rbx
+	pushq	%rdi
+.seh_pushreg %rdi
 	pushq	%rsi
 .seh_pushreg %rsi
-	leaq	-72(%rsp),%rsp
+	pushq	%r12
+.seh_pushreg %r12
+	pushq	%r13
+.seh_pushreg %r13
+	movl	$8,%r10d
+.Lj103:
+	leaq	-4096(%rsp),%rsp
+	movl	%eax,(%rsp)
+	subq	$1,%r10
+	jne	.Lj103
+	leaq	-2224(%rsp),%rsp
 .Lc32:
-.seh_stackalloc 72
-	movdqa	%xmm6,48(%rsp)
-.seh_savexmm %xmm6, 48
+.seh_stackalloc 34992
+	movdqa	%xmm6,34976(%rsp)
+.seh_savexmm %xmm6, 34976
 .seh_endprologue
 # Var $result located in register rax
-# Var i located in register ebx
+# Var i located in register r13d
 # Var sum located in register xmm6
+# Var best_genome located at rsp+40, size=OS_NO
+# Var diag_seeded located at rsp+32808, size=OS_NO
+# Var diag_result located at rsp+34856, size=OS_NO
+# Var j located in register r12d
+# Var injected located in register ebx
 # Var param located in register rcx
-.Ll117:
-# [329] while Running do
-	jmp	.Lj66
+.Ll116:
+# [340] while Running do
+	jmp	.Lj69
 	.balign 8,0x90
-.Lj65:
-.Ll118:
-# [331] Sleep(500);
+.Lj68:
+.Ll117:
+# [342] Sleep(500);
 	movl	$500,%ecx
 	call	SYSUTILS_$$_SLEEP$LONGWORD
-.Ll119:
-# [332] if not Running then Break;
+.Ll118:
+# [343] if not Running then Break;
 	cmpb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-	je	.Lj67
+	je	.Lj70
 	.balign 4,0x90
-.Ll120:
-# [334] UpdateSharedMemory;
+.Ll119:
+# [345] UpdateSharedMemory;
 	call	SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY
-.Ll121:
-# [336] EnterCriticalSection(HyperCS);
+.Ll120:
+# [347] EnterCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	_$dll$kernel32$EnterCriticalSection
-.Ll122:
-# [337] BestFitness   := PopFitness[0];
+.Ll121:
+# [348] BestFitness   := PopFitness[0];
 	movq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-.Ll123:
-# [338] BestGenomeIdx := 0;
+.Ll122:
+# [349] BestGenomeIdx := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
+.Ll123:
+# [350] sum := 0.0;
+	movsd	_$SOMA_HYPERVISOR$_Ld4(%rip),%xmm6
 .Ll124:
-# [339] sum := 0.0;
-	movsd	_$SOMA_HYPERVISOR$_Ld11(%rip),%xmm6
-.Ll125:
-# [340] for i := 0 to POPULATION_SIZE-1 do
-	movl	$-1,%ebx
+# [351] for i := 0 to POPULATION_SIZE-1 do
+	movl	$-1,%r13d
 	.balign 8,0x90
-.Lj70:
-	addl	$1,%ebx
-.Ll126:
-# [342] sum := sum + PopFitness[i];
-	movl	%ebx,%eax
+.Lj73:
+	addl	$1,%r13d
+.Ll125:
+# [353] sum := sum + PopFitness[i];
+	movl	%r13d,%eax
 	movapd	%xmm6,%xmm0
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	addsd	(%rdx,%rax,8),%xmm0
 	movapd	%xmm0,%xmm6
-.Ll127:
-# [343] if PopFitness[i] > BestFitness then
-	movl	%ebx,%eax
+.Ll126:
+# [354] if PopFitness[i] > BestFitness then
+	movl	%r13d,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	movsd	(%rdx,%rax,8),%xmm0
 	comisd	U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip),%xmm0
-	jp	.Lj74
-	jna	.Lj74
-.Ll128:
-# [345] BestFitness   := PopFitness[i];
-	movl	%ebx,%eax
+	jp	.Lj77
+	jna	.Lj77
+.Ll127:
+# [356] BestFitness   := PopFitness[i];
+	movl	%r13d,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
 	movq	(%rdx,%rax,8),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-.Ll129:
-# [346] BestGenomeIdx := i;
-	movl	%ebx,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
+.Ll128:
+# [357] BestGenomeIdx := i;
+	movl	%r13d,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
 	.balign 4,0x90
-.Lj74:
+.Lj77:
+.Ll129:
+	cmpl	$127,%r13d
+	jnge	.Lj73
 .Ll130:
-	cmpl	$127,%ebx
-	jnge	.Lj70
-.Ll131:
-# [349] AvgFitness := sum / POPULATION_SIZE;
+# [360] AvgFitness  := sum / POPULATION_SIZE;
 	movapd	%xmm6,%xmm0
-	mulsd	_$SOMA_HYPERVISOR$_Ld12(%rip),%xmm0
+	mulsd	_$SOMA_HYPERVISOR$_Ld5(%rip),%xmm0
 	movsd	%xmm0,U_$SOMA_HYPERVISOR_$$_AVGFITNESS(%rip)
+.Ll131:
+# [361] best_genome := Population[BestGenomeIdx];  // small copy while still locked
+	movl	U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip),%eax
+	shlq	$15,%rax
+	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
+	leaq	40(%rsp),%rdi
+	leaq	(%rdx,%rax),%rsi
+	movl	$4096,%ecx
+	rep
+	movsq
 .Ll132:
-# [350] LeaveCriticalSection(HyperCS);
-	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
-	call	_$dll$kernel32$LeaveCriticalSection
+# [371] if BestFitness > LastBestSeen + 1e-6 then
+	movsd	TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN(%rip),%xmm0
+	addsd	_$SOMA_HYPERVISOR$_Ld6(%rip),%xmm0
+	comisd	U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip),%xmm0
+	jp	.Lj80
+	jnb	.Lj80
 .Ll133:
-# [352] WriteLn('Gen: ', Generation,
+# [373] LastBestSeen  := BestFitness;
+	movq	U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip),%rax
+	movq	%rax,TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN(%rip)
+.Ll134:
+# [374] StagnantTicks := 0;
+	movl	$0,TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS(%rip)
+	jmp	.Lj82
+.Lj80:
+.Ll135:
+# [377] Inc(StagnantTicks);
+	addl	$1,TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS(%rip)
+.Lj82:
+.Ll136:
+# [379] if StagnantTicks >= STAGNATION_TICK_THRESHOLD then
+	cmpl	$6,TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS(%rip)
+	jnge	.Lj84
+.Ll137:
+# [381] injected := 0;
+	xorl	%ebx,%ebx
+.Ll138:
+# [382] for i := 0 to POPULATION_SIZE - 1 do
+	movl	$-1,%r13d
+	.balign 8,0x90
+.Lj85:
+	addl	$1,%r13d
+.Ll139:
+# [384] if i = BestGenomeIdx then Continue;
+	cmpl	U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip),%r13d
+	je	.Lj86
+	.balign 4,0x90
+.Ll140:
+# [385] XorShift64(GlobalRNG);
+	movq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rax
+	shlq	$13,%rax
+	xorq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rax
+	movq	%rax,U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip)
+	shrq	$7,%rax
+	xorq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rax
+	movq	%rax,U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip)
+	shlq	$17,%rax
+	xorq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rax
+	movq	%rax,U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip)
+.Ll141:
+# [386] if (GlobalRNG mod 1000) < UInt64(Trunc(INJECTION_FRACTION * 1000)) then
+	movq	%rax,%rcx
+	movq	$442721857769029239,%rax
+	mulq	%rcx
+	movq	%rcx,%rax
+	addq	%rcx,%rdx
+	rcrq	$1,%rdx
+	shrq	$9,%rdx
+	movl	$1000,%ecx
+	imulq	%rcx,%rdx
+	subq	%rdx,%rax
+	cmpq	$250,%rax
+	jnb	.Lj92
+.Ll142:
+# [388] RandomGenome(Population[i], GlobalRNG);
+	movl	%r13d,%eax
+	shlq	$15,%rax
+	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
+	leaq	(%rdx,%rax),%rcx
+	leaq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rdx
+	call	SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD
+.Ll143:
+# [389] PopFitness[i] := 0.0;  // guarantees it's a replace-worst candidate again
+	movl	%r13d,%eax
+	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
+	movq	_$SOMA_HYPERVISOR$_Ld4(%rip),%rcx
+	movq	%rcx,(%rdx,%rax,8)
+.Ll144:
+# [390] Inc(injected);
+	addl	$1,%ebx
+	.balign 4,0x90
+.Lj92:
+.Lj86:
+.Ll145:
+	cmpl	$127,%r13d
+	jnge	.Lj85
+.Ll146:
+# [393] StagnantTicks := 0;
+	movl	$0,TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS(%rip)
+.Ll147:
+# [394] WriteLn('  [stagnation] no improvement for ', STAGNATION_TICK_THRESHOLD,
 	call	fpc_get_output
 	movq	%rax,%rsi
-	leaq	_$SOMA_HYPERVISOR$_Ld13(%rip),%r8
+	leaq	_$SOMA_HYPERVISOR$_Ld7(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+	movl	$6,%r8d
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_sint
+	call	fpc_iocheck
+	leaq	_$SOMA_HYPERVISOR$_Ld8(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+.Ll148:
+# [395] ' ticks -- injected ', injected, ' fresh genomes');
+	movslq	%ebx,%r8
+.Ll149:
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_sint
+	call	fpc_iocheck
+	leaq	_$SOMA_HYPERVISOR$_Ld9(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+	movq	%rsi,%rcx
+	call	fpc_writeln_end
+	call	fpc_iocheck
+	.balign 4,0x90
+.Lj84:
+.Ll150:
+# [398] LeaveCriticalSection(HyperCS);
+	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
+	call	_$dll$kernel32$LeaveCriticalSection
+.Ll151:
+# [406] FillChar(DiagState^, SizeOf(TVMState), 0);
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rcx
+	xorl	%r8d,%r8d
+	movl	$37184,%edx
+	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
+.Ll152:
+# [407] DiagState^.genome := best_genome;
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rax
+	leaq	4392(%rax),%rdi
+	leaq	40(%rsp),%rsi
+	movl	$4096,%ecx
+	rep
+	movsq
+.Ll153:
+# [408] SeedFitnessInput(DiagState^, FitnessTarget, DiagRNG);
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rcx
+	leaq	U_$SOMA_HYPERVISOR_$$_DIAGRNG(%rip),%r8
+	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%rdx
+	call	SOMA_FITNESS_$$_SEEDFITNESSINPUT$TVMSTATE$TFITNESSTARGET$QWORD
+.Ll154:
+# [409] for j := 0 to FitnessTarget.input_count - 1 do
+	movl	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET+12(%rip),%eax
+	subl	$1,%eax
+	testl	%eax,%eax
+	jnge	.Lj94
+	movl	$-1,%r12d
+	.balign 8,0x90
+.Lj95:
+	addl	$1,%r12d
+.Ll155:
+# [410] diag_seeded[j] := DiagState^.istack[j];
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%r8
+	movl	%r12d,%edx
+	movl	%r12d,%ecx
+	movq	256(%r8,%rdx,8),%rdx
+	movq	%rdx,32808(%rsp,%rcx,8)
+.Ll156:
+	cmpl	%r12d,%eax
+	jnle	.Lj95
+	.balign 4,0x90
+.Lj94:
+.Ll157:
+# [411] Execute(DiagState^);
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rcx
+	call	SOMA_CORE_$$_EXECUTE$TVMSTATE
+.Ll158:
+# [412] diag_result := EvaluateFitnessTarget(DiagState^, FitnessTarget, diag_seeded);
+	movq	$255,32(%rsp)
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rdx
+	leaq	32808(%rsp),%r9
+	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%r8
+	leaq	34856(%rsp),%rcx
+	call	SOMA_FITNESS_$$_EVALUATEFITNESSTARGET$TVMSTATE$TFITNESSTARGET$array_of_INT64$$TFITNESSRESULT
+.Ll159:
+# [414] WriteLn('Gen: ', Generation,
+	call	fpc_get_output
+	movq	%rax,%rsi
+	leaq	_$SOMA_HYPERVISOR$_Ld10(%rip),%r8
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
 	call	fpc_write_text_shortstr
@@ -1034,7 +1137,7 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	xorl	%ecx,%ecx
 	call	fpc_write_text_uint
 	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld14(%rip),%r8
+	leaq	_$SOMA_HYPERVISOR$_Ld11(%rip),%r8
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
 	call	fpc_write_text_shortstr
@@ -1047,7 +1150,7 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	movl	$1,%ecx
 	call	fpc_write_text_float
 	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld15(%rip),%r8
+	leaq	_$SOMA_HYPERVISOR$_Ld12(%rip),%r8
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
 	call	fpc_write_text_shortstr
@@ -1060,15 +1163,15 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	movl	$1,%ecx
 	call	fpc_write_text_float
 	call	fpc_iocheck
-	leaq	_$SOMA_HYPERVISOR$_Ld16(%rip),%r8
+	leaq	_$SOMA_HYPERVISOR$_Ld13(%rip),%r8
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
 	call	fpc_write_text_shortstr
 	call	fpc_iocheck
-.Ll134:
-# [355] '  (genome #', BestGenomeIdx, ')');
+.Ll160:
+# [417] '  (genome #', BestGenomeIdx, ')');
 	movslq	U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip),%r8
-.Ll135:
+.Ll161:
 	movq	%rsi,%rdx
 	xorl	%ecx,%ecx
 	call	fpc_write_text_sint
@@ -1081,35 +1184,128 @@ SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64:
 	movq	%rsi,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Lj66:
-.Ll136:
+.Ll162:
+# [418] Write('    breakdown -- ');
+	call	fpc_get_output
+	movq	%rax,%rsi
+	leaq	_$SOMA_HYPERVISOR$_Ld14(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+	movq	%rsi,%rcx
+	call	fpc_write_end
+	call	fpc_iocheck
+.Ll163:
+# [419] for j := 0 to High(FitnessTarget.criteria) do
+	movq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET+32(%rip),%rcx
+	call	fpc_dynarray_high
+	movq	%rax,%rsi
+	testl	%esi,%esi
+	jnge	.Lj99
+	movl	$-1,%r12d
+	.balign 8,0x90
+.Lj100:
+	addl	$1,%r12d
+.Ll164:
+# [420] Write(FitnessTarget.criteria[j].metric, '=', diag_result.metrics[j]:0:4, ' ');
+	call	fpc_get_output
+	movq	%rax,%rdi
+	movq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET+32(%rip),%rdx
+	movslq	%r12d,%rax
+	shlq	$4,%rax
+	movq	(%rdx,%rax),%r8
+	movq	%rdi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_ansistr
+	call	fpc_iocheck
+	movl	$61,%r8d
+	movq	%rdi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_char
+	call	fpc_iocheck
+	movl	%r12d,%eax
+	movq	34864(%rsp,%rax,8),%rax
+	movq	%rax,32(%rsp)
+	movq	%rdi,%r9
+	xorl	%r8d,%r8d
+	movl	$4,%edx
+	movl	$1,%ecx
+	call	fpc_write_text_float
+	call	fpc_iocheck
+	movl	$32,%r8d
+	movq	%rdi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_char
+	call	fpc_iocheck
+	movq	%rdi,%rcx
+	call	fpc_write_end
+	call	fpc_iocheck
+.Ll165:
+	cmpl	%r12d,%esi
+	jnle	.Lj100
+	.balign 4,0x90
+.Lj99:
+.Ll166:
+# [421] WriteLn('halt_reason=', Ord(DiagState^.halt_reason), ' passed=', diag_result.passed);
+	call	fpc_get_output
+	movq	%rax,%rsi
+	leaq	_$SOMA_HYPERVISOR$_Ld15(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip),%rax
+	movq	4384(%rax),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_uint
+	call	fpc_iocheck
+	leaq	_$SOMA_HYPERVISOR$_Ld16(%rip),%r8
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_shortstr
+	call	fpc_iocheck
+	movb	34962(%rsp),%r8b
+	movq	%rsi,%rdx
+	xorl	%ecx,%ecx
+	call	fpc_write_text_boolean
+	call	fpc_iocheck
+	movq	%rsi,%rcx
+	call	fpc_writeln_end
+	call	fpc_iocheck
+.Lj69:
+.Ll167:
 	cmpb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-	jne	.Lj65
-.Lj67:
+	jne	.Lj68
+.Lj70:
 # Var $result located in register rax
-.Ll137:
-# [357] Result := 0;
+.Ll168:
+# [423] Result := 0;
 	xorl	%eax,%eax
-.Ll138:
-# [358] end;
+.Ll169:
+# [424] end;
 	nop
-	movdqa	48(%rsp),%xmm6
-	leaq	72(%rsp),%rsp
+	movdqa	34976(%rsp),%xmm6
+	leaq	34992(%rsp),%rsp
+	popq	%r13
+	popq	%r12
 	popq	%rsi
+	popq	%rdi
 	popq	%rbx
 	ret
 .seh_endproc
 .Lc31:
 .Lt16:
-.Ll139:
+.Ll170:
 
-.section .text.n_soma_hypervisor$_$hypervisorinit$longint_$$_fin$00000024,"x"
+.section .text.n_soma_hypervisor$_$hypervisorinit$longint_$$_fin$00000022,"x"
 	.balign 16,0x90
-SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024:
+SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022:
 .Lc33:
-.seh_proc SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
-.Ll140:
-# [407] end;
+.seh_proc SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
+.Ll171:
+# [480] end;
 	pushq	%rbp
 .seh_pushreg %rbp
 .Lc35:
@@ -1119,8 +1315,8 @@ SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024:
 	leaq	-32(%rsp),%rsp
 .seh_stackalloc 32
 .seh_endprologue
-.Ll141:
-# [367] begin
+.Ll172:
+# [433] begin
 	leaq	INIT_$SOMA_FITNESS_$$_TFITNESSTARGET(%rip),%rdx
 	leaq	-40(%rbp),%rcx
 	call	fpc_finalize
@@ -1131,7 +1327,7 @@ SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024:
 .seh_endproc
 .Lc34:
 .Lt2:
-.Ll142:
+.Ll173:
 
 .section .text.n_soma_hypervisor_$$_hypervisorinit$longint,"x"
 	.balign 16,0x90
@@ -1140,7 +1336,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 .Lc38:
 # Temps allocated between rbp-56 and rbp+0
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
-.Ll143:
+.Ll174:
 	pushq	%rbp
 .seh_pushreg %rbp
 .Lc40:
@@ -1157,57 +1353,57 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 # Var i located in register esi
 	movl	%ecx,%ebx
 # Var colony_count located in register ebx
-.Ll144:
+.Ll175:
 	leaq	INIT_$SOMA_FITNESS_$$_TFITNESSTARGET(%rip),%rdx
 	leaq	-40(%rbp),%rcx
 	call	fpc_initialize
-.Lj84:
+.Lj112:
 	nop
-.Lj80:
-.Ll145:
-# [368] if colony_count > MAX_COLONIES then colony_count := MAX_COLONIES;
+.Lj108:
+.Ll176:
+# [434] if colony_count > MAX_COLONIES then colony_count := MAX_COLONIES;
 	cmpl	$16,%ebx
-	jng	.Lj86
+	jng	.Lj114
 	movl	$16,%ebx
 	.balign 4,0x90
-.Lj86:
-.Ll146:
-# [369] if colony_count < 1 then colony_count := 1;
+.Lj114:
+.Ll177:
+# [435] if colony_count < 1 then colony_count := 1;
 	cmpl	$1,%ebx
-	jnl	.Lj88
+	jnl	.Lj116
 	movl	$1,%ebx
 	.balign 4,0x90
-.Lj88:
-.Ll147:
-# [370] ColonyCount := colony_count;
+.Lj116:
+.Ll178:
+# [436] ColonyCount := colony_count;
 	movl	%ebx,U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip)
-.Ll148:
-# [371] Generation  := 0;
+.Ll179:
+# [437] Generation  := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-.Ll149:
-# [372] BestFitness := 0.0;
-	movq	_$SOMA_HYPERVISOR$_Ld11(%rip),%rax
+.Ll180:
+# [438] BestFitness := 0.0;
+	movq	_$SOMA_HYPERVISOR$_Ld4(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_BESTFITNESS(%rip)
-.Ll150:
-# [373] AvgFitness  := 0.0;
-	movq	_$SOMA_HYPERVISOR$_Ld11(%rip),%rax
+.Ll181:
+# [439] AvgFitness  := 0.0;
+	movq	_$SOMA_HYPERVISOR$_Ld4(%rip),%rax
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_AVGFITNESS(%rip)
-.Ll151:
-# [374] Running     := False;
+.Ll182:
+# [440] Running     := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-.Ll152:
-# [376] InitCriticalSection(HyperCS);
+.Ll183:
+# [442] InitCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	SYSTEM_$$_INITCRITICALSECTION$TRTLCRITICALSECTION
-.Ll153:
-# [377] InitSharedMemory;
+.Ll184:
+# [443] InitSharedMemory;
 	call	SOMA_HYPERVISOR_$$_INITSHAREDMEMORY
-.Ll154:
-# [378] StartTime := ReadTSC;
+.Ll185:
+# [444] StartTime := ReadTSC;
 	call	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	movq	%rax,U_$SOMA_HYPERVISOR_$$_STARTTIME(%rip)
-.Ll155:
-# [383] FitnessTarget := LoadFitnessTarget('fitness_sort.json');
+.Ll186:
+# [449] FitnessTarget := LoadFitnessTarget('fitness_sort3.json');  // TEMP: 3-element target,
 	leaq	INIT_$SOMA_FITNESS_$$_TFITNESSTARGET(%rip),%rbx
 	leaq	.Ld17(%rip),%rdx
 	leaq	-40(%rbp),%rcx
@@ -1216,8 +1412,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%rdx
 	movq	%rbx,%r8
 	call	fpc_copy_proc
-.Ll156:
-# [384] WriteLn('  Fitness target: ', FitnessTarget.name, ' v', FitnessTarget.version);
+.Ll187:
+# [454] WriteLn('  Fitness target: ', FitnessTarget.name, ' v', FitnessTarget.version);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld18(%rip),%r8
@@ -1243,37 +1439,49 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll157:
-# [386] for i := 0 to ColonyCount-1 do
+.Ll188:
+# [456] DiagState := AllocAligned(SizeOf(TVMState), DiagRawAlloc);
+	leaq	U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC(%rip),%rdx
+	movl	$37184,%ecx
+	call	SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER
+	movq	%rax,U_$SOMA_HYPERVISOR_$$_DIAGSTATE(%rip)
+.Ll189:
+# [457] DiagRNG   := $D1AC7100 + UInt64(GetTickCount64);
+	call	SYSUTILS_$$_GETTICKCOUNT64$$QWORD
+	movl	$3517739264,%edx
+	addq	%rdx,%rax
+	movq	%rax,U_$SOMA_HYPERVISOR_$$_DIAGRNG(%rip)
+.Ll190:
+# [459] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
-	jnge	.Lj90
+	jnge	.Lj118
 	movl	$-1,%esi
 	.balign 8,0x90
-.Lj91:
+.Lj119:
 	addl	$1,%esi
-.Ll158:
-# [388] Colonies[i].colony_id := i;
+.Ll191:
+# [461] Colonies[i].colony_id := i;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movl	%esi,28(%rdx,%rax)
-.Ll159:
-# [389] Colonies[i].active    := False;
+.Ll192:
+# [462] Colonies[i].active    := False;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movb	$0,24(%rdx,%rax)
-.Ll160:
-# [390] Colonies[i].fitness   := 0.0;
+.Ll193:
+# [463] Colonies[i].fitness   := 0.0;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rcx
-	movq	_$SOMA_HYPERVISOR$_Ld11(%rip),%rdx
+	movq	_$SOMA_HYPERVISOR$_Ld4(%rip),%rdx
 	movq	%rdx,32(%rcx,%rax)
-.Ll161:
-# [391] Colonies[i].state     := AllocAligned(SizeOf(TVMState), Colonies[i].raw_alloc);
+.Ll194:
+# [464] Colonies[i].state     := AllocAligned(SizeOf(TVMState), Colonies[i].raw_alloc);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1284,8 +1492,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	imulq	$56,%rdx,%rcx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movq	%rax,8(%rdx,%rcx)
-.Ll162:
-# [392] FillChar(Colonies[i].state^, SizeOf(TVMState), 0);
+.Ll195:
+# [465] FillChar(Colonies[i].state^, SizeOf(TVMState), 0);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rax
@@ -1293,40 +1501,40 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	xorl	%r8d,%r8d
 	movl	$37184,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-.Ll163:
+.Ll196:
 	cmpl	%esi,%ebx
-	jnle	.Lj91
+	jnle	.Lj119
 	.balign 4,0x90
-.Lj90:
-.Ll164:
-# [395] GlobalRNG := UInt64($CAFE1234DEADBEEF);
+.Lj118:
+.Ll197:
+# [468] GlobalRNG := UInt64($CAFE1234DEADBEEF);
 	movl	$-559038737,U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip)
 	movl	$-889318860,U_$SOMA_HYPERVISOR_$$_GLOBALRNG+4(%rip)
-.Ll165:
-# [396] for i := 0 to POPULATION_SIZE-1 do
+.Ll198:
+# [469] for i := 0 to POPULATION_SIZE-1 do
 	movl	$-1,%esi
 	.balign 8,0x90
-.Lj94:
+.Lj122:
 	addl	$1,%esi
-.Ll166:
-# [398] RandomGenome(Population[i], GlobalRNG);
+.Ll199:
+# [471] RandomGenome(Population[i], GlobalRNG);
 	movl	%esi,%eax
 	shlq	$15,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rdx
 	leaq	(%rdx,%rax),%rcx
 	leaq	U_$SOMA_HYPERVISOR_$$_GLOBALRNG(%rip),%rdx
 	call	SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD
-.Ll167:
-# [399] PopFitness[i] := 0.0;
+.Ll200:
+# [472] PopFitness[i] := 0.0;
 	movl	%esi,%eax
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rdx
-	movq	_$SOMA_HYPERVISOR$_Ld11(%rip),%rcx
+	movq	_$SOMA_HYPERVISOR$_Ld4(%rip),%rcx
 	movq	%rcx,(%rdx,%rax,8)
-.Ll168:
+.Ll201:
 	cmpl	$127,%esi
-	jnge	.Lj94
-.Ll169:
-# [402] WriteLn('SOMA Hypervisor initialised');
+	jnge	.Lj122
+.Ll202:
+# [475] WriteLn('SOMA Hypervisor initialised');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld20(%rip),%r8
@@ -1337,8 +1545,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll170:
-# [403] WriteLn('  Colonies  : ', ColonyCount);
+.Ll203:
+# [476] WriteLn('  Colonies  : ', ColonyCount);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld21(%rip),%r8
@@ -1354,8 +1562,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll171:
-# [404] WriteLn('  Population: ', POPULATION_SIZE);
+.Ll204:
+# [477] WriteLn('  Population: ', POPULATION_SIZE);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld22(%rip),%r8
@@ -1371,8 +1579,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll172:
-# [405] WriteLn('  VMState   : ', SizeOf(TVMState), ' bytes per colony');
+.Ll205:
+# [478] WriteLn('  VMState   : ', SizeOf(TVMState), ' bytes per colony');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld23(%rip),%r8
@@ -1393,8 +1601,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll173:
-# [406] WriteLn('  Total RAM : ', (ColonyCount * SizeOf(TVMState)) div 1024, ' KB for VM states');
+.Ll206:
+# [479] WriteLn('  Total RAM : ', (ColonyCount * SizeOf(TVMState)) div 1024, ' KB for VM states');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld25(%rip),%r8
@@ -1421,13 +1629,13 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Lj82:
-.Ll174:
+.Lj110:
+.Ll207:
 	nop
-.Lj81:
+.Lj109:
 	movq	%rbp,%rcx
-	call	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
-.Ll175:
+	call	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
+.Ll208:
 	movq	-56(%rbp),%rbx
 	movq	-48(%rbp),%rsi
 	leaq	(%rbp),%rsp
@@ -1437,15 +1645,15 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 .seh_handlerdata
 	.long	1
 	.long	0
-	.rva	.Lj80
-	.rva	.Lj81
-	.rva	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
+	.rva	.Lj108
+	.rva	.Lj109
+	.rva	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
 
 .section .text.n_soma_hypervisor_$$_hypervisorinit$longint,"x"
 .seh_endproc
 .Lc39:
 .Lt1:
-.Ll176:
+.Ll209:
 
 .section .text.n_soma_hypervisor_$$_hypervisorrun,"x"
 	.balign 16,0x90
@@ -1453,8 +1661,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT:
 SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 .Lc43:
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORRUN
-.Ll177:
-# [412] begin
+.Ll210:
+# [485] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rdi
@@ -1466,11 +1674,11 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 .seh_stackalloc 32
 .seh_endprologue
 # Var i located in register esi
-.Ll178:
-# [413] Running := True;
+.Ll211:
+# [486] Running := True;
 	movb	$1,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-.Ll179:
-# [414] WriteLn('Starting colony threads...');
+.Ll212:
+# [487] WriteLn('Starting colony threads...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld27(%rip),%r8
@@ -1481,24 +1689,24 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll180:
-# [416] for i := 0 to ColonyCount-1 do
+.Ll213:
+# [489] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
-	jnge	.Lj100
+	jnge	.Lj128
 	movl	$-1,%esi
 	.balign 8,0x90
-.Lj101:
+.Lj129:
 	addl	$1,%esi
-.Ll181:
-# [418] Colonies[i].active    := True;
+.Ll214:
+# [491] Colonies[i].active    := True;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movb	$1,24(%rdx,%rax)
-.Ll182:
-# [419] Colonies[i].thread_id := BeginThread(@ColonyThreadProc, @Colonies[i]);
+.Ll215:
+# [492] Colonies[i].thread_id := BeginThread(@ColonyThreadProc, @Colonies[i]);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
@@ -1509,15 +1717,15 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	imulq	$56,%rdx,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rcx
 	movl	%eax,(%rcx,%rdx)
-.Ll183:
-# [420] if Colonies[i].thread_id = 0 then
+.Ll216:
+# [493] if Colonies[i].thread_id = 0 then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	cmpl	$0,(%rdx,%rax)
-	jne	.Lj105
-.Ll184:
-# [421] WriteLn('WARNING: Failed to start colony thread ', i)
+	jne	.Lj133
+.Ll217:
+# [494] WriteLn('WARNING: Failed to start colony thread ', i)
 	call	fpc_get_output
 	movq	%rax,%rdi
 	leaq	_$SOMA_HYPERVISOR$_Ld28(%rip),%r8
@@ -1533,10 +1741,10 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rdi,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-	jmp	.Lj106
-.Lj105:
-.Ll185:
-# [423] WriteLn('  Colony ', i, ' started (thread ', Colonies[i].thread_id, ')');
+	jmp	.Lj134
+.Lj133:
+.Ll218:
+# [496] WriteLn('  Colony ', i, ' started (thread ', Colonies[i].thread_id, ')');
 	call	fpc_get_output
 	movq	%rax,%rdi
 	leaq	_$SOMA_HYPERVISOR$_Ld29(%rip),%r8
@@ -1570,24 +1778,24 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rdi,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Lj106:
-.Ll186:
+.Lj134:
+.Ll219:
 	cmpl	%esi,%ebx
-	jnle	.Lj101
+	jnle	.Lj129
 	.balign 4,0x90
-.Lj100:
-.Ll187:
-# [426] StatusThreadID := BeginThread(@StatusThreadProc, nil);
+.Lj128:
+.Ll220:
+# [499] StatusThreadID := BeginThread(@StatusThreadProc, nil);
 	leaq	SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64(%rip),%rcx
 	xorl	%edx,%edx
 	call	SYSTEM_$$_BEGINTHREAD$TTHREADFUNC$POINTER$$LONGWORD
 	movl	%eax,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
-.Ll188:
-# [427] if StatusThreadID = 0 then
+.Ll221:
+# [500] if StatusThreadID = 0 then
 	testl	%eax,%eax
-	jne	.Lj108
-.Ll189:
-# [428] WriteLn('WARNING: Failed to start status thread');
+	jne	.Lj136
+.Ll222:
+# [501] WriteLn('WARNING: Failed to start status thread');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld31(%rip),%r8
@@ -1599,9 +1807,9 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	call	fpc_writeln_end
 	call	fpc_iocheck
 	.balign 4,0x90
-.Lj108:
-.Ll190:
-# [430] WriteLn('Hypervisor running. Press Enter to stop...');
+.Lj136:
+.Ll223:
+# [503] WriteLn('Hypervisor running. Press Enter to stop...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld32(%rip),%r8
@@ -1612,17 +1820,17 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll191:
-# [431] Readln;
+.Ll224:
+# [504] Readln;
 	call	fpc_get_input
 	movq	%rax,%rcx
 	call	fpc_readln_end
 	call	fpc_iocheck
-.Ll192:
-# [433] Running := False;
+.Ll225:
+# [506] Running := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-.Ll193:
-# [434] end;
+.Ll226:
+# [507] end;
 	nop
 	leaq	32(%rsp),%rsp
 	popq	%rsi
@@ -1632,7 +1840,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 .seh_endproc
 .Lc44:
 .Lt3:
-.Ll194:
+.Ll227:
 
 .section .text.n_soma_hypervisor_$$_hypervisorstop,"x"
 	.balign 16,0x90
@@ -1640,8 +1848,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORRUN:
 SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 .Lc46:
 .seh_proc SOMA_HYPERVISOR_$$_HYPERVISORSTOP
-.Ll195:
-# [439] begin
+.Ll228:
+# [512] begin
 	pushq	%rbx
 .seh_pushreg %rbx
 	pushq	%rsi
@@ -1651,8 +1859,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 .seh_stackalloc 40
 .seh_endprologue
 # Var i located in register esi
-.Ll196:
-# [440] WriteLn('Stopping hypervisor...');
+.Ll229:
+# [513] WriteLn('Stopping hypervisor...');
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld33(%rip),%r8
@@ -1663,111 +1871,121 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll197:
-# [442] if StatusThreadID <> 0 then
+.Ll230:
+# [515] if StatusThreadID <> 0 then
 	cmpl	$0,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
-	je	.Lj112
-.Ll198:
-# [444] WaitForSingleObject(StatusThreadID, 2000);
+	je	.Lj140
+.Ll231:
+# [517] WaitForSingleObject(StatusThreadID, 2000);
 	movl	U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip),%ecx
 	movl	$2000,%edx
 	call	_$dll$kernel32$WaitForSingleObject
-.Ll199:
-# [445] CloseHandle(StatusThreadID);
+.Ll232:
+# [518] CloseHandle(StatusThreadID);
 	movl	U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip),%ecx
 	call	_$dll$kernel32$CloseHandle
 	.balign 4,0x90
-.Lj112:
-.Ll200:
-# [448] for i := 0 to ColonyCount-1 do
+.Lj140:
+.Ll233:
+# [521] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
-	jnge	.Lj114
+	jnge	.Lj142
 	movl	$-1,%esi
 	.balign 8,0x90
-.Lj115:
+.Lj143:
 	addl	$1,%esi
-.Ll201:
-# [450] if Colonies[i].active and (Colonies[i].thread_id <> 0) then
+.Ll234:
+# [523] if Colonies[i].active and (Colonies[i].thread_id <> 0) then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
-.Ll202:
+.Ll235:
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	addq	%rdx,%rax
-.Ll203:
+.Ll236:
 	cmpb	$0,24(%rax)
-	je	.Lj119
+	je	.Lj147
 	cmpl	$0,(%rax)
-	je	.Lj119
-.Ll204:
-# [452] WaitForSingleObject(Colonies[i].thread_id, 5000);
-	movl	%esi,%eax
-	imulq	$56,%rax,%rax
-	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
-	movl	(%rdx,%rax),%ecx
-	movl	$5000,%edx
-	call	_$dll$kernel32$WaitForSingleObject
-.Ll205:
-# [453] CloseHandle(Colonies[i].thread_id);
+	je	.Lj147
+.Ll237:
+# [525] WaitForSingleObject(Colonies[i].thread_id, 5000);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rax
 	movl	(%rax,%rdx),%ecx
+	movl	$5000,%edx
+	call	_$dll$kernel32$WaitForSingleObject
+.Ll238:
+# [526] CloseHandle(Colonies[i].thread_id);
+	movl	%esi,%eax
+	imulq	$56,%rax,%rax
+	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
+	movl	(%rdx,%rax),%ecx
 	call	_$dll$kernel32$CloseHandle
-.Ll206:
-# [454] Colonies[i].active := False;
+.Ll239:
+# [527] Colonies[i].active := False;
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movb	$0,24(%rdx,%rax)
 	.balign 4,0x90
-.Lj119:
-.Ll207:
+.Lj147:
+.Ll240:
 	cmpl	%esi,%ebx
-	jnle	.Lj115
+	jnle	.Lj143
 	.balign 4,0x90
-.Lj114:
-.Ll208:
-# [458] for i := 0 to ColonyCount-1 do
+.Lj142:
+.Ll241:
+# [531] for i := 0 to ColonyCount-1 do
 	movl	U_$SOMA_HYPERVISOR_$$_COLONYCOUNT(%rip),%eax
 	leal	-1(%eax),%ebx
 	testl	%ebx,%ebx
-	jnge	.Lj122
+	jnge	.Lj150
 	movl	$-1,%esi
 	.balign 8,0x90
-.Lj123:
+.Lj151:
 	addl	$1,%esi
-.Ll209:
-# [459] if Colonies[i].raw_alloc <> nil then
+.Ll242:
+# [532] if Colonies[i].raw_alloc <> nil then
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	cmpq	$0,16(%rdx,%rax)
-	je	.Lj127
-.Ll210:
-# [460] FreeMem(Colonies[i].raw_alloc);
+	je	.Lj155
+.Ll243:
+# [533] FreeMem(Colonies[i].raw_alloc);
 	movl	%esi,%eax
 	imulq	$56,%rax,%rax
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rdx
 	movq	16(%rdx,%rax),%rcx
 	call	SYSTEM_$$_FREEMEM$POINTER$$QWORD
 	.balign 4,0x90
-.Lj127:
-.Ll211:
+.Lj155:
+.Ll244:
 	cmpl	%esi,%ebx
-	jnle	.Lj123
+	jnle	.Lj151
 	.balign 4,0x90
-.Lj122:
-.Ll212:
-# [462] CloseSharedMemory;
+.Lj150:
+.Ll245:
+# [535] if DiagRawAlloc <> nil then
+	cmpq	$0,U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC(%rip)
+	je	.Lj157
+.Ll246:
+# [536] FreeMem(DiagRawAlloc);
+	movq	U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC(%rip),%rcx
+	call	SYSTEM_$$_FREEMEM$POINTER$$QWORD
+	.balign 4,0x90
+.Lj157:
+.Ll247:
+# [538] CloseSharedMemory;
 	call	SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY
-.Ll213:
-# [463] DoneCriticalSection(HyperCS);
+.Ll248:
+# [539] DoneCriticalSection(HyperCS);
 	leaq	U_$SOMA_HYPERVISOR_$$_HYPERCS(%rip),%rcx
 	call	SYSTEM_$$_DONECRITICALSECTION$TRTLCRITICALSECTION
-.Ll214:
-# [464] WriteLn('Hypervisor stopped. Total generations: ', Generation);
+.Ll249:
+# [540] WriteLn('Hypervisor stopped. Total generations: ', Generation);
 	call	fpc_get_output
 	movq	%rax,%rbx
 	leaq	_$SOMA_HYPERVISOR$_Ld34(%rip),%r8
@@ -1783,8 +2001,8 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 	movq	%rbx,%rcx
 	call	fpc_writeln_end
 	call	fpc_iocheck
-.Ll215:
-# [465] end;
+.Ll250:
+# [541] end;
 	nop
 	leaq	40(%rsp),%rsp
 	popq	%rsi
@@ -1793,7 +2011,7 @@ SOMA_HYPERVISOR_$$_HYPERVISORSTOP:
 .seh_endproc
 .Lc47:
 .Lt4:
-.Ll216:
+.Ll251:
 
 .section .text.n_soma_hypervisor_$$_init$,"x"
 	.balign 16,0x90
@@ -1803,64 +2021,64 @@ INIT$_$SOMA_HYPERVISOR:
 SOMA_HYPERVISOR_$$_init$:
 .Lc49:
 .seh_proc SOMA_HYPERVISOR_$$_init$
-.Ll217:
-# [467] initialization
+.Ll252:
+# [543] initialization
 	leaq	-40(%rsp),%rsp
 .Lc51:
 .seh_stackalloc 40
 .seh_endprologue
-.Ll218:
+.Ll253:
 	leaq	INIT_$SOMA_FITNESS_$$_TFITNESSTARGET(%rip),%rdx
 	leaq	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET(%rip),%rcx
 	call	fpc_initialize
-.Ll219:
-# [468] FillChar(Colonies,   SizeOf(Colonies),   0);
+.Ll254:
+# [544] FillChar(Colonies,   SizeOf(Colonies),   0);
 	leaq	U_$SOMA_HYPERVISOR_$$_COLONIES(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$896,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-.Ll220:
-# [469] FillChar(Population, SizeOf(Population), 0);
+.Ll255:
+# [545] FillChar(Population, SizeOf(Population), 0);
 	leaq	U_$SOMA_HYPERVISOR_$$_POPULATION(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$4194304,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-.Ll221:
-# [470] FillChar(PopFitness, SizeOf(PopFitness), 0);
+.Ll256:
+# [546] FillChar(PopFitness, SizeOf(PopFitness), 0);
 	leaq	U_$SOMA_HYPERVISOR_$$_POPFITNESS(%rip),%rcx
 	xorl	%r8d,%r8d
 	movl	$1024,%edx
 	call	SYSTEM_$$_FILLCHAR$formal$INT64$BYTE
-.Ll222:
-# [471] Running        := False;
+.Ll257:
+# [547] Running        := False;
 	movb	$0,U_$SOMA_HYPERVISOR_$$_RUNNING(%rip)
-.Ll223:
-# [472] ShmemHandle    := 0;
+.Ll258:
+# [548] ShmemHandle    := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_SHMEMHANDLE(%rip)
-.Ll224:
-# [473] Shmem          := nil;
+.Ll259:
+# [549] Shmem          := nil;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_SHMEM(%rip)
-.Ll225:
-# [474] StartTime      := 0;
+.Ll260:
+# [550] StartTime      := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_STARTTIME(%rip)
-.Ll226:
-# [475] Generation     := 0;
+.Ll261:
+# [551] Generation     := 0;
 	movq	$0,U_$SOMA_HYPERVISOR_$$_GENERATION(%rip)
-.Ll227:
-# [476] StatusThreadID := 0;
+.Ll262:
+# [552] StatusThreadID := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_STATUSTHREADID(%rip)
-.Ll228:
-# [477] BestGenomeIdx  := 0;
+.Ll263:
+# [553] BestGenomeIdx  := 0;
 	movl	$0,U_$SOMA_HYPERVISOR_$$_BESTGENOMEIDX(%rip)
-.Ll229:
-# [479] end.
+.Ll264:
+# [555] end.
 	nop
 	leaq	40(%rsp),%rsp
 	ret
 .seh_endproc
 .Lc50:
 .Lt5:
-.Ll230:
+.Ll265:
 
 .section .text.n_soma_hypervisor_$$_finalize_implicit$,"x"
 	.balign 16,0x90
@@ -1889,7 +2107,7 @@ SOMA_HYPERVISOR_$$_finalize_implicit$:
 .seh_endproc
 .Lc53:
 .Lt17:
-.Ll231:
+.Ll266:
 # End asmlist al_procedures
 # Begin asmlist al_globals
 
@@ -2004,8 +2222,44 @@ U_$SOMA_HYPERVISOR_$$_GLOBALRNG:
 	.globl U_$SOMA_HYPERVISOR_$$_FITNESSTARGET
 U_$SOMA_HYPERVISOR_$$_FITNESSTARGET:
 	.zero 40
+
+.section .bss
+	.balign 8
+# [63] DiagState:        PVMState;        // dedicated aligned VM, used only by StatusThreadProc
+	.globl U_$SOMA_HYPERVISOR_$$_DIAGSTATE
+U_$SOMA_HYPERVISOR_$$_DIAGSTATE:
+	.zero 8
+
+.section .bss
+	.balign 8
+# [64] DiagRawAlloc:      Pointer;
+	.globl U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC
+U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC:
+	.zero 8
+
+.section .bss
+	.balign 8
+# [65] DiagRNG:          UInt64;
+	.globl U_$SOMA_HYPERVISOR_$$_DIAGRNG
+U_$SOMA_HYPERVISOR_$$_DIAGRNG:
+	.zero 8
 # End asmlist al_globals
 # Begin asmlist al_typedconsts
+
+.section .data.n_TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN,"d"
+	.balign 8
+.globl	TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN
+TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN:
+# value: 0d-1.0000000000000000E+000
+	.byte	0,0,0,0,0,0,240,191
+# [67] StagnantTicks:    Integer = 0;
+
+.section .data.n_TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS,"d"
+	.balign 4
+.globl	TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS
+TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS:
+	.long	0
+# [69] const
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld1,"d"
 	.balign 8
@@ -2029,96 +2283,93 @@ _$SOMA_HYPERVISOR$_Ld3:
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld4
 _$SOMA_HYPERVISOR$_Ld4:
-	.ascii	"\013  [dbg gen=\000"
+# value: 0d+0.0000000000000000E+000
+	.byte	0,0,0,0,0,0,0,0
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld5,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld5
 _$SOMA_HYPERVISOR$_Ld5:
-	.ascii	"\016] input_count=\000"
+# value: 0d+7.8125000000000000E-003
+	.byte	0,0,0,0,0,0,128,63
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld6,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld6
 _$SOMA_HYPERVISOR$_Ld6:
-# [296] ' istack[0..3]=', state^.istack[0], ',', state^.istack[1], ',',
-	.ascii	"\016 istack[0..3]=\000"
+# value: 0d+9.9999999999999995E-007
+	.byte	141,237,181,160,247,198,176,62
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld7,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld7
 _$SOMA_HYPERVISOR$_Ld7:
-# [298] ' isp=', state^.isp, ' ip=', state^.ip,
-	.ascii	"\005 isp=\000"
+	.ascii	"\"  [stagnation] no improvement for \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld8,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld8
 _$SOMA_HYPERVISOR$_Ld8:
-	.ascii	"\004 ip=\000"
+	.ascii	"\023 ticks -- injected \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld9,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld9
 _$SOMA_HYPERVISOR$_Ld9:
-# [299] ' halt_reason=', Ord(state^.halt_reason),
-	.ascii	"\015 halt_reason=\000"
+	.ascii	"\016 fresh genomes\000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld10,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld10
 _$SOMA_HYPERVISOR$_Ld10:
-# [300] ' fitness=', col^.fitness:0:4);
-	.ascii	"\011 fitness=\000"
+	.ascii	"\005Gen: \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld11,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld11
 _$SOMA_HYPERVISOR$_Ld11:
-# value: 0d+0.0000000000000000E+000
-	.byte	0,0,0,0,0,0,0,0
+# [415] '  Best: ', BestFitness:6:4,
+	.ascii	"\010  Best: \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld12,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld12
 _$SOMA_HYPERVISOR$_Ld12:
-# value: 0d+7.8125000000000000E-003
-	.byte	0,0,0,0,0,0,128,63
+# [416] '  Avg: ',  AvgFitness:6:4,
+	.ascii	"\007  Avg: \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld13,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld13
 _$SOMA_HYPERVISOR$_Ld13:
-	.ascii	"\005Gen: \000"
+	.ascii	"\013  (genome #\000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld14,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld14
 _$SOMA_HYPERVISOR$_Ld14:
-# [353] '  Best: ', BestFitness:6:4,
-	.ascii	"\010  Best: \000"
+	.ascii	"\021    breakdown -- \000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld15,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld15
 _$SOMA_HYPERVISOR$_Ld15:
-# [354] '  Avg: ',  AvgFitness:6:4,
-	.ascii	"\007  Avg: \000"
+	.ascii	"\014halt_reason=\000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld16,"d"
 	.balign 8
 .globl	_$SOMA_HYPERVISOR$_Ld16
 _$SOMA_HYPERVISOR$_Ld16:
-	.ascii	"\013  (genome #\000"
+	.ascii	"\010 passed=\000"
 
 .section .rodata.n_.Ld17,"d"
 	.balign 8
 .Ld17$strlab:
 	.short	0,1
 	.long	0
-	.quad	-1,17
+	.quad	-1,18
 .Ld17:
-	.ascii	"fitness_sort.json\000"
+	.ascii	"fitness_sort3.json\000"
 
 .section .rodata.n__$SOMA_HYPERVISOR$_Ld18,"d"
 	.balign 8
@@ -2229,7 +2480,7 @@ _$SOMA_HYPERVISOR$_Ld34:
 .globl	RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE
 RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE:
 	.byte	29,8
-# [480] 
+# [556] 
 	.ascii	"PVMState"
 	.quad	RTTI_$SOMA_TYPES_$$_TVMSTATE$indirect
 
@@ -2532,7 +2783,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	4
 	.long	.Lc29-.Lc27
 	.byte	14
-	.uleb128	32840
+	.uleb128	35000
 	.balign 4,0
 .Lc79:
 	.long	.Lc81-.Lc80
@@ -2543,7 +2794,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	4
 	.long	.Lc32-.Lc30
 	.byte	14
-	.uleb128	80
+	.uleb128	35000
 	.balign 4,0
 .Lc81:
 	.long	.Lc83-.Lc82
@@ -2813,6 +3064,58 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	3
 	.quad	U_$SOMA_HYPERVISOR_$$_FITNESSTARGET
 	.long	.La31-.Ldebug_info0
+# Symbol DIAGSTATE
+	.uleb128	3
+	.ascii	"DiagState\000"
+	.byte	1
+	.byte	9
+	.byte	3
+	.quad	U_$SOMA_HYPERVISOR_$$_DIAGSTATE
+	.long	.La5-.Ldebug_info0
+# Symbol DIAGRAWALLOC
+	.uleb128	3
+	.ascii	"DiagRawAlloc\000"
+	.byte	1
+	.byte	9
+	.byte	3
+	.quad	U_$SOMA_HYPERVISOR_$$_DIAGRAWALLOC
+	.long	.La33-.Ldebug_info0
+# Symbol DIAGRNG
+	.uleb128	3
+	.ascii	"DiagRNG\000"
+	.byte	1
+	.byte	9
+	.byte	3
+	.quad	U_$SOMA_HYPERVISOR_$$_DIAGRNG
+	.long	.La17-.Ldebug_info0
+# Symbol LASTBESTSEEN
+	.uleb128	3
+	.ascii	"LastBestSeen\000"
+	.byte	1
+	.byte	9
+	.byte	3
+	.quad	TC_$SOMA_HYPERVISOR_$$_LASTBESTSEEN
+	.long	.La21-.Ldebug_info0
+# Symbol STAGNANTTICKS
+	.uleb128	3
+	.ascii	"StagnantTicks\000"
+	.byte	1
+	.byte	9
+	.byte	3
+	.quad	TC_$SOMA_HYPERVISOR_$$_STAGNANTTICKS
+	.long	.La19-.Ldebug_info0
+# Symbol STAGNATION_TICK_THRESHOLD
+	.uleb128	2
+	.ascii	"STAGNATION_TICK_THRESHOLD\000"
+	.long	.La1-.Ldebug_info0
+	.uleb128	6
+# Symbol INJECTION_FRACTION
+	.uleb128	4
+	.ascii	"INJECTION_FRACTION\000"
+	.long	.La35-.Ldebug_info0
+	.byte	4
+# value: 0d+2.500000000E-01
+	.byte	0,0,128,62
 # Symbol HYPERVISORINIT
 # Symbol HYPERVISORRUN
 # Symbol HYPERVISORSTOP
@@ -2830,7 +3133,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 # Symbol TOURNAMENTSELECT
 # Symbol COLONYTHREADPROC
 # Symbol STATUSTHREADPROC
-# Symbol ansistrrec17
+# Symbol ansistrrec18
 # Symbol SOMA_HYPERVISOR_$$_finalize_implicit$
 # Symbol rttidef$RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE
 # Symbol rtti_header$8
@@ -2849,7 +3152,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 # Symbol rttidef$RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM
 # Syms - End Staticsymtable
 # Procdef HypervisorInit(LongInt);
-	.uleb128	4
+	.uleb128	5
 	.ascii	"HypervisorInit\000"
 	.byte	1
 	.byte	65
@@ -2857,38 +3160,38 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
 	.quad	.Lt1
 # Symbol COLONY_COUNT
-	.uleb128	5
+	.uleb128	6
 	.ascii	"colony_count\000"
 	.byte	2
 	.byte	144
 	.uleb128	3
 	.long	.La19-.Ldebug_info0
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
 	.uleb128	4
 	.long	.La19-.Ldebug_info0
-# Symbol fin$00000024
+# Symbol fin$00000022
 	.byte	0
-# Procdef $fin$00000024(<^untyped>) is nested; Register;
-	.uleb128	7
-	.ascii	"$fin$00000024\000"
+# Procdef $fin$00000022(<^untyped>) is nested; Register;
+	.uleb128	8
+	.ascii	"$fin$00000022\000"
 	.byte	1
 	.byte	65
-	.quad	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
+	.quad	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
 	.quad	.Lt2
 # Symbol parentfp
-	.uleb128	5
+	.uleb128	6
 	.ascii	"$parentfp\000"
 	.byte	2
 	.byte	144
 	.uleb128	6
-	.long	.La65-.Ldebug_info0
+	.long	.La69-.Ldebug_info0
 	.byte	0
 # Procdef HypervisorRun;
-	.uleb128	4
+	.uleb128	5
 	.ascii	"HypervisorRun\000"
 	.byte	1
 	.byte	65
@@ -2896,7 +3199,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORRUN
 	.quad	.Lt3
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
@@ -2904,7 +3207,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La19-.Ldebug_info0
 	.byte	0
 # Procdef HypervisorStop;
-	.uleb128	4
+	.uleb128	5
 	.ascii	"HypervisorStop\000"
 	.byte	1
 	.byte	65
@@ -2912,7 +3215,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORSTOP
 	.quad	.Lt4
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
@@ -2920,7 +3223,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La19-.Ldebug_info0
 	.byte	0
 # Procdef $SOMA_HYPERVISOR_$$_init$; Register;
-	.uleb128	4
+	.uleb128	5
 	.ascii	"$SOMA_HYPERVISOR_$$_init$\000"
 	.byte	1
 	.byte	65
@@ -2929,51 +3232,51 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	.Lt5
 	.byte	0
 # Procdef AllocAligned(QWord;out Pointer):^untyped;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"AllocAligned\000"
 	.byte	1
 	.byte	65
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 	.quad	SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER
 	.quad	.Lt6
 # Symbol SIZE
-	.uleb128	5
+	.uleb128	6
 	.ascii	"size\000"
 	.byte	2
 	.byte	144
 	.uleb128	2
 	.long	.La17-.Ldebug_info0
 # Symbol RAW
-	.uleb128	5
+	.uleb128	6
 	.ascii	"raw\000"
 	.byte	3
 	.byte	146
 	.uleb128	3
 	.sleb128	0
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Symbol ALLOCALIGNED
-	.uleb128	6
+	.uleb128	7
 	.ascii	"ALLOCALIGNED\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Symbol P
-	.uleb128	6
+	.uleb128	7
 	.ascii	"p\000"
 	.byte	2
 	.byte	144
@@ -2981,16 +3284,16 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La17-.Ldebug_info0
 	.byte	0
 # Procdef InitSharedMemory;
-	.uleb128	7
+	.uleb128	8
 	.ascii	"InitSharedMemory\000"
 	.byte	1
 	.byte	65
 	.quad	SOMA_HYPERVISOR_$$_INITSHAREDMEMORY
 	.quad	.Lt7
 # Symbol SHMEM_NAME
-	.uleb128	9
+	.uleb128	4
 	.ascii	"SHMEM_NAME\000"
-	.long	.La69-.Ldebug_info0
+	.long	.La71-.Ldebug_info0
 	.byte	14
 	.byte	13
 	.byte	83
@@ -3008,7 +3311,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	119
 	.byte	0
 # Procdef CloseSharedMemory;
-	.uleb128	7
+	.uleb128	8
 	.ascii	"CloseSharedMemory\000"
 	.byte	1
 	.byte	65
@@ -3016,7 +3319,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	.Lt8
 	.byte	0
 # Procdef ReadTSC:QWord;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"ReadTSC\000"
 	.byte	1
 	.byte	65
@@ -3024,28 +3327,28 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_READTSC$$QWORD
 	.quad	.Lt9
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	118
 	.sleb128	-8
 	.long	.La17-.Ldebug_info0
 # Symbol READTSC
-	.uleb128	6
+	.uleb128	7
 	.ascii	"READTSC\000"
 	.byte	2
 	.byte	118
 	.sleb128	-8
 	.long	.La17-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	118
 	.sleb128	-8
 	.long	.La17-.Ldebug_info0
 # Symbol R
-	.uleb128	6
+	.uleb128	7
 	.ascii	"r\000"
 	.byte	2
 	.byte	118
@@ -3053,7 +3356,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La17-.Ldebug_info0
 	.byte	0
 # Procdef UpdateSharedMemory;
-	.uleb128	7
+	.uleb128	8
 	.ascii	"UpdateSharedMemory\000"
 	.byte	1
 	.byte	65
@@ -3061,22 +3364,22 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	.Lt10
 	.byte	0
 # Procdef RandomGenome(var TGenome;var QWord);
-	.uleb128	7
+	.uleb128	8
 	.ascii	"RandomGenome\000"
 	.byte	1
 	.byte	65
 	.quad	SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD
 	.quad	.Lt11
 # Symbol G
-	.uleb128	5
+	.uleb128	6
 	.ascii	"G\000"
 	.byte	3
 	.byte	146
 	.uleb128	2
 	.sleb128	0
-	.long	.La71-.Ldebug_info0
+	.long	.La73-.Ldebug_info0
 # Symbol RNG
-	.uleb128	5
+	.uleb128	6
 	.ascii	"rng\000"
 	.byte	3
 	.byte	146
@@ -3084,7 +3387,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.sleb128	0
 	.long	.La17-.Ldebug_info0
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
@@ -3092,7 +3395,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La19-.Ldebug_info0
 	.byte	0
 # Procdef EvaluateFitness(PVMState):Double;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"EvaluateFitness\000"
 	.byte	1
 	.byte	65
@@ -3100,43 +3403,43 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE
 	.quad	.Lt12
 # Symbol STATE
-	.uleb128	5
+	.uleb128	6
 	.ascii	"state\000"
 	.byte	2
 	.byte	144
 	.uleb128	1
 	.long	.La5-.Ldebug_info0
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	144
 	.uleb128	17
 	.long	.La21-.Ldebug_info0
 # Symbol EVALUATEFITNESS
-	.uleb128	6
+	.uleb128	7
 	.ascii	"EVALUATEFITNESS\000"
 	.byte	2
 	.byte	144
 	.uleb128	17
 	.long	.La21-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	144
 	.uleb128	17
 	.long	.La21-.Ldebug_info0
 # Symbol FR
-	.uleb128	6
+	.uleb128	7
 	.ascii	"fr\000"
 	.byte	2
 	.byte	119
 	.sleb128	40
-	.long	.La73-.Ldebug_info0
+	.long	.La75-.Ldebug_info0
 	.byte	0
 # Procdef FindWorstIdx:LongInt;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"FindWorstIdx\000"
 	.byte	1
 	.byte	65
@@ -3144,35 +3447,35 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT
 	.quad	.Lt13
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol FINDWORSTIDX
-	.uleb128	6
+	.uleb128	7
 	.ascii	"FINDWORSTIDX\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
 	.uleb128	1
 	.long	.La19-.Ldebug_info0
 # Symbol WORST
-	.uleb128	6
+	.uleb128	7
 	.ascii	"worst\000"
 	.byte	2
 	.byte	144
@@ -3180,7 +3483,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La21-.Ldebug_info0
 	.byte	0
 # Procdef TournamentSelect(var QWord;LongInt):LongInt;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"TournamentSelect\000"
 	.byte	1
 	.byte	65
@@ -3188,7 +3491,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.quad	SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT
 	.quad	.Lt14
 # Symbol RNG
-	.uleb128	5
+	.uleb128	6
 	.ascii	"rng\000"
 	.byte	3
 	.byte	146
@@ -3196,56 +3499,56 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.sleb128	0
 	.long	.La17-.Ldebug_info0
 # Symbol K
-	.uleb128	5
+	.uleb128	6
 	.ascii	"k\000"
 	.byte	2
 	.byte	144
 	.uleb128	1
 	.long	.La19-.Ldebug_info0
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol TOURNAMENTSELECT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"TOURNAMENTSELECT\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol I
-	.uleb128	6
+	.uleb128	7
 	.ascii	"i\000"
 	.byte	2
 	.byte	144
 	.uleb128	8
 	.long	.La19-.Ldebug_info0
 # Symbol CANDIDATE
-	.uleb128	6
+	.uleb128	7
 	.ascii	"candidate\000"
 	.byte	2
 	.byte	144
 	.uleb128	10
 	.long	.La19-.Ldebug_info0
 # Symbol BEST_IDX
-	.uleb128	6
+	.uleb128	7
 	.ascii	"best_idx\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La19-.Ldebug_info0
 # Symbol BEST_FIT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"best_fit\000"
 	.byte	2
 	.byte	144
@@ -3253,158 +3556,242 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La21-.Ldebug_info0
 	.byte	0
 # Procdef ColonyThreadProc(Pointer):Int64;
-	.uleb128	8
+	.uleb128	9
 	.ascii	"ColonyThreadProc\000"
 	.byte	1
 	.byte	65
-	.long	.La75-.Ldebug_info0
+	.long	.La77-.Ldebug_info0
 	.quad	SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64
 	.quad	.Lt15
 # Symbol PARAM
-	.uleb128	5
+	.uleb128	6
 	.ascii	"param\000"
 	.byte	2
 	.byte	144
 	.uleb128	2
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Symbol result
-	.uleb128	6
+	.uleb128	7
 	.ascii	"$result\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La75-.Ldebug_info0
+	.long	.La77-.Ldebug_info0
 # Symbol COLONYTHREADPROC
-	.uleb128	6
+	.uleb128	7
 	.ascii	"COLONYTHREADPROC\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La75-.Ldebug_info0
+	.long	.La77-.Ldebug_info0
 # Symbol RESULT
-	.uleb128	6
+	.uleb128	7
 	.ascii	"RESULT\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La75-.Ldebug_info0
+	.long	.La77-.Ldebug_info0
 # Symbol COL
-	.uleb128	6
+	.uleb128	7
 	.ascii	"col\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
-	.long	.La77-.Ldebug_info0
+	.long	.La79-.Ldebug_info0
 # Symbol STATE
-	.uleb128	6
+	.uleb128	7
 	.ascii	"state\000"
 	.byte	2
 	.byte	144
 	.uleb128	0
 	.long	.La5-.Ldebug_info0
 # Symbol T0
-	.uleb128	6
+	.uleb128	7
 	.ascii	"t0\000"
 	.byte	2
 	.byte	144
 	.uleb128	15
 	.long	.La17-.Ldebug_info0
 # Symbol T1
-	.uleb128	6
+	.uleb128	7
 	.ascii	"t1\000"
 	.byte	2
 	.byte	144
 	.uleb128	14
 	.long	.La17-.Ldebug_info0
 # Symbol PARENT_IDX
-	.uleb128	6
+	.uleb128	7
 	.ascii	"parent_idx\000"
 	.byte	2
 	.byte	144
 	.uleb128	13
 	.long	.La19-.Ldebug_info0
 # Symbol WORST_IDX
-	.uleb128	6
+	.uleb128	7
 	.ascii	"worst_idx\000"
 	.byte	2
 	.byte	144
 	.uleb128	12
 	.long	.La19-.Ldebug_info0
 # Symbol LOCAL_RNG
-	.uleb128	6
+	.uleb128	7
 	.ascii	"local_rng\000"
 	.byte	2
 	.byte	119
 	.sleb128	40
 	.long	.La17-.Ldebug_info0
 # Symbol OFFSPRING
-	.uleb128	6
+	.uleb128	7
 	.ascii	"offspring\000"
 	.byte	2
 	.byte	119
 	.sleb128	48
-	.long	.La71-.Ldebug_info0
-# Definition ^TColonyThread
-.La77:
-	.uleb128	10
-	.long	.La7-.Ldebug_info0
-.La78:
-	.uleb128	11
-	.long	.La77-.Ldebug_info0
-	.byte	0
-# Procdef StatusThreadProc(Pointer):Int64;
-	.uleb128	8
-	.ascii	"StatusThreadProc\000"
-	.byte	1
-	.byte	65
+	.long	.La73-.Ldebug_info0
+# Symbol SEEDED_INPUT
+	.uleb128	7
+	.ascii	"seeded_input\000"
+	.byte	4
+	.byte	119
+	.sleb128	32816
+	.long	.La81-.Ldebug_info0
+# Symbol FIT_RESULT
+	.uleb128	7
+	.ascii	"fit_result\000"
+	.byte	4
+	.byte	119
+	.sleb128	34864
 	.long	.La75-.Ldebug_info0
-	.quad	SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64
-	.quad	.Lt16
-# Symbol PARAM
-	.uleb128	5
-	.ascii	"param\000"
-	.byte	2
-	.byte	144
-	.uleb128	2
-	.long	.La67-.Ldebug_info0
-# Symbol result
-	.uleb128	6
-	.ascii	"$result\000"
-	.byte	2
-	.byte	144
-	.uleb128	0
-	.long	.La75-.Ldebug_info0
-# Symbol STATUSTHREADPROC
-	.uleb128	6
-	.ascii	"STATUSTHREADPROC\000"
-	.byte	2
-	.byte	144
-	.uleb128	0
-	.long	.La75-.Ldebug_info0
-# Symbol RESULT
-	.uleb128	6
-	.ascii	"RESULT\000"
-	.byte	2
-	.byte	144
-	.uleb128	0
-	.long	.La75-.Ldebug_info0
-# Symbol I
-	.uleb128	6
-	.ascii	"i\000"
+# Symbol DBG_I
+	.uleb128	7
+	.ascii	"dbg_i\000"
 	.byte	2
 	.byte	144
 	.uleb128	3
 	.long	.La19-.Ldebug_info0
-# Symbol SUM
+# Definition ^TColonyThread
+.La79:
+	.uleb128	10
+	.long	.La7-.Ldebug_info0
+.La80:
+	.uleb128	11
+	.long	.La79-.Ldebug_info0
+# Definition Array[0..255] Of Int64
+.La81:
+	.uleb128	12
+	.uleb128	2048
+	.long	.La77-.Ldebug_info0
+	.uleb128	13
+	.sleb128	0
+	.sleb128	255
+	.uleb128	8
+	.long	.La3-.Ldebug_info0
+	.byte	0
+.La82:
+	.uleb128	11
+	.long	.La81-.Ldebug_info0
+	.byte	0
+# Procdef StatusThreadProc(Pointer):Int64;
+	.uleb128	9
+	.ascii	"StatusThreadProc\000"
+	.byte	1
+	.byte	65
+	.long	.La77-.Ldebug_info0
+	.quad	SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64
+	.quad	.Lt16
+# Symbol PARAM
 	.uleb128	6
+	.ascii	"param\000"
+	.byte	2
+	.byte	144
+	.uleb128	2
+	.long	.La33-.Ldebug_info0
+# Symbol result
+	.uleb128	7
+	.ascii	"$result\000"
+	.byte	2
+	.byte	144
+	.uleb128	0
+	.long	.La77-.Ldebug_info0
+# Symbol STATUSTHREADPROC
+	.uleb128	7
+	.ascii	"STATUSTHREADPROC\000"
+	.byte	2
+	.byte	144
+	.uleb128	0
+	.long	.La77-.Ldebug_info0
+# Symbol RESULT
+	.uleb128	7
+	.ascii	"RESULT\000"
+	.byte	2
+	.byte	144
+	.uleb128	0
+	.long	.La77-.Ldebug_info0
+# Symbol I
+	.uleb128	7
+	.ascii	"i\000"
+	.byte	2
+	.byte	144
+	.uleb128	13
+	.long	.La19-.Ldebug_info0
+# Symbol SUM
+	.uleb128	7
 	.ascii	"sum\000"
 	.byte	2
 	.byte	144
 	.uleb128	23
 	.long	.La21-.Ldebug_info0
+# Symbol BEST_GENOME
+	.uleb128	7
+	.ascii	"best_genome\000"
+	.byte	2
+	.byte	119
+	.sleb128	40
+	.long	.La73-.Ldebug_info0
+# Symbol DIAG_SEEDED
+	.uleb128	7
+	.ascii	"diag_seeded\000"
+	.byte	4
+	.byte	119
+	.sleb128	32808
+	.long	.La83-.Ldebug_info0
+# Symbol DIAG_RESULT
+	.uleb128	7
+	.ascii	"diag_result\000"
+	.byte	4
+	.byte	119
+	.sleb128	34856
+	.long	.La75-.Ldebug_info0
+# Symbol J
+	.uleb128	7
+	.ascii	"j\000"
+	.byte	2
+	.byte	144
+	.uleb128	12
+	.long	.La19-.Ldebug_info0
+# Symbol INJECTED
+	.uleb128	7
+	.ascii	"injected\000"
+	.byte	2
+	.byte	144
+	.uleb128	3
+	.long	.La19-.Ldebug_info0
+# Definition Array[0..255] Of Int64
+.La83:
+	.uleb128	12
+	.uleb128	2048
+	.long	.La77-.Ldebug_info0
+	.uleb128	13
+	.sleb128	0
+	.sleb128	255
+	.uleb128	8
+	.long	.La3-.Ldebug_info0
+	.byte	0
+.La84:
+	.uleb128	11
+	.long	.La83-.Ldebug_info0
 	.byte	0
 # Procdef $SOMA_HYPERVISOR_$$_finalize_implicit$; Register;
-	.uleb128	4
+	.uleb128	5
 	.ascii	"$SOMA_HYPERVISOR_$$_finalize_implicit$\000"
 	.byte	1
 	.byte	65
@@ -3414,22 +3801,22 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 # Defs - Begin unit SYSTEM has index 1
 # Definition Pointer
-.La67:
-	.uleb128	12
+.La33:
+	.uleb128	14
 	.ascii	"Pointer\000"
-	.long	.La79-.Ldebug_info0
-.La79:
-	.uleb128	13
-.La68:
+	.long	.La85-.Ldebug_info0
+.La85:
+	.uleb128	15
+.La34:
 	.uleb128	11
-	.long	.La67-.Ldebug_info0
+	.long	.La33-.Ldebug_info0
 # Definition Byte
 .La3:
-	.uleb128	12
-	.ascii	"Byte\000"
-	.long	.La80-.Ldebug_info0
-.La80:
 	.uleb128	14
+	.ascii	"Byte\000"
+	.long	.La86-.Ldebug_info0
+.La86:
+	.uleb128	16
 	.ascii	"Byte\000"
 	.byte	7
 	.byte	1
@@ -3438,11 +3825,11 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La3-.Ldebug_info0
 # Definition ShortInt
 .La1:
-	.uleb128	12
-	.ascii	"ShortInt\000"
-	.long	.La81-.Ldebug_info0
-.La81:
 	.uleb128	14
+	.ascii	"ShortInt\000"
+	.long	.La87-.Ldebug_info0
+.La87:
+	.uleb128	16
 	.ascii	"ShortInt\000"
 	.byte	5
 	.byte	1
@@ -3451,11 +3838,11 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La1-.Ldebug_info0
 # Definition LongWord
 .La29:
-	.uleb128	12
-	.ascii	"LongWord\000"
-	.long	.La82-.Ldebug_info0
-.La82:
 	.uleb128	14
+	.ascii	"LongWord\000"
+	.long	.La88-.Ldebug_info0
+.La88:
+	.uleb128	16
 	.ascii	"LongWord\000"
 	.byte	7
 	.byte	4
@@ -3464,11 +3851,11 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La29-.Ldebug_info0
 # Definition LongInt
 .La19:
-	.uleb128	12
-	.ascii	"LongInt\000"
-	.long	.La83-.Ldebug_info0
-.La83:
 	.uleb128	14
+	.ascii	"LongInt\000"
+	.long	.La89-.Ldebug_info0
+.La89:
+	.uleb128	16
 	.ascii	"LongInt\000"
 	.byte	5
 	.byte	4
@@ -3477,11 +3864,11 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La19-.Ldebug_info0
 # Definition QWord
 .La17:
-	.uleb128	12
-	.ascii	"QWord\000"
-	.long	.La84-.Ldebug_info0
-.La84:
 	.uleb128	14
+	.ascii	"QWord\000"
+	.long	.La90-.Ldebug_info0
+.La90:
+	.uleb128	16
 	.ascii	"QWord\000"
 	.byte	7
 	.byte	8
@@ -3489,25 +3876,25 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	11
 	.long	.La17-.Ldebug_info0
 # Definition Int64
-.La75:
-	.uleb128	12
-	.ascii	"Int64\000"
-	.long	.La85-.Ldebug_info0
-.La85:
+.La77:
 	.uleb128	14
+	.ascii	"Int64\000"
+	.long	.La91-.Ldebug_info0
+.La91:
+	.uleb128	16
 	.ascii	"Int64\000"
 	.byte	5
 	.byte	8
-.La76:
+.La78:
 	.uleb128	11
-	.long	.La75-.Ldebug_info0
+	.long	.La77-.Ldebug_info0
 # Definition Boolean
 .La23:
-	.uleb128	12
-	.ascii	"Boolean\000"
-	.long	.La86-.Ldebug_info0
-.La86:
 	.uleb128	14
+	.ascii	"Boolean\000"
+	.long	.La92-.Ldebug_info0
+.La92:
+	.uleb128	16
 	.ascii	"Boolean\000"
 	.byte	2
 	.byte	1
@@ -3515,35 +3902,48 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	11
 	.long	.La23-.Ldebug_info0
 # Definition ShortString
-.La69:
-	.uleb128	12
+.La71:
+	.uleb128	14
 	.ascii	"ShortString\000"
-	.long	.La87-.Ldebug_info0
-.La87:
-	.uleb128	15
+	.long	.La93-.Ldebug_info0
+.La93:
+	.uleb128	17
 	.ascii	"ShortString\000"
 	.byte	3
 	.byte	151
 	.byte	49
 	.byte	34
-	.long	.La88-.Ldebug_info0
-	.uleb128	16
+	.long	.La94-.Ldebug_info0
+	.uleb128	18
 	.uleb128	1
 	.byte	3
 	.byte	151
 	.byte	148
 	.byte	1
 	.byte	0
-.La70:
+.La72:
 	.uleb128	11
-	.long	.La69-.Ldebug_info0
+	.long	.La71-.Ldebug_info0
+# Definition Single
+.La35:
+	.uleb128	14
+	.ascii	"Single\000"
+	.long	.La96-.Ldebug_info0
+.La96:
+	.uleb128	16
+	.ascii	"Single\000"
+	.byte	4
+	.byte	4
+.La36:
+	.uleb128	11
+	.long	.La35-.Ldebug_info0
 # Definition Double
 .La21:
-	.uleb128	12
-	.ascii	"Double\000"
-	.long	.La90-.Ldebug_info0
-.La90:
 	.uleb128	14
+	.ascii	"Double\000"
+	.long	.La97-.Ldebug_info0
+.La97:
+	.uleb128	16
 	.ascii	"Double\000"
 	.byte	4
 	.byte	8
@@ -3551,55 +3951,55 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	11
 	.long	.La21-.Ldebug_info0
 # Definition ^untyped
-.La65:
-	.uleb128	12
+.La69:
+	.uleb128	14
 	.ascii	"$parentfp_void_pointer\000"
-	.long	.La91-.Ldebug_info0
-.La91:
-	.uleb128	13
-.La66:
+	.long	.La98-.Ldebug_info0
+.La98:
+	.uleb128	15
+.La70:
 	.uleb128	11
-	.long	.La65-.Ldebug_info0
+	.long	.La69-.Ldebug_info0
 # Definition TRTLCriticalSection
 .La25:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TRTLCriticalSection\000"
-	.long	.La92-.Ldebug_info0
-.La92:
-	.uleb128	17
+	.long	.La99-.Ldebug_info0
+.La99:
+	.uleb128	19
 	.ascii	"TRTLCRITICALSECTION\000"
 	.uleb128	40
-	.uleb128	18
+	.uleb128	20
 	.ascii	"DebugInfo\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
-	.long	.La67-.Ldebug_info0
-	.uleb128	18
+	.long	.La33-.Ldebug_info0
+	.uleb128	20
 	.ascii	"LockCount\000"
 	.byte	2
 	.byte	35
 	.uleb128	8
 	.long	.La19-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"RecursionCount\000"
 	.byte	2
 	.byte	35
 	.uleb128	12
 	.long	.La19-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"OwningThread\000"
 	.byte	2
 	.byte	35
 	.uleb128	16
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"LockSemaphore\000"
 	.byte	2
 	.byte	35
 	.uleb128	24
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"SpinCount\000"
 	.byte	2
 	.byte	35
@@ -3610,132 +4010,132 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	11
 	.long	.La25-.Ldebug_info0
 # Definition Char
-.La88:
-	.uleb128	12
-	.ascii	"Char\000"
-	.long	.La93-.Ldebug_info0
-.La93:
+.La94:
 	.uleb128	14
+	.ascii	"Char\000"
+	.long	.La100-.Ldebug_info0
+.La100:
+	.uleb128	16
 	.ascii	"Char\000"
 	.byte	8
 	.byte	1
-.La89:
+.La95:
 	.uleb128	11
-	.long	.La88-.Ldebug_info0
+	.long	.La94-.Ldebug_info0
 # Defs - End unit SYSTEM has index 1
 # Defs - Begin unit OBJPAS has index 6
 # Defs - End unit OBJPAS has index 6
 # Defs - Begin unit SOMA_TYPES has index 8
 # Definition TGenome
-.La71:
-	.uleb128	12
+.La73:
+	.uleb128	14
 	.ascii	"TGenome\000"
-	.long	.La94-.Ldebug_info0
-.La94:
-	.uleb128	19
+	.long	.La101-.Ldebug_info0
+.La101:
+	.uleb128	21
 	.ascii	"TGenome\000"
 	.uleb128	32768
-	.long	.La95-.Ldebug_info0
-	.uleb128	20
+	.long	.La102-.Ldebug_info0
+	.uleb128	13
 	.sleb128	0
 	.sleb128	4095
 	.uleb128	8
-	.long	.La97-.Ldebug_info0
+	.long	.La104-.Ldebug_info0
 	.byte	0
-.La72:
+.La74:
 	.uleb128	11
-	.long	.La71-.Ldebug_info0
+	.long	.La73-.Ldebug_info0
 # Definition TFitnessResult
-.La73:
-	.uleb128	12
+.La75:
+	.uleb128	14
 	.ascii	"TFitnessResult\000"
-	.long	.La99-.Ldebug_info0
-.La99:
-	.uleb128	17
+	.long	.La106-.Ldebug_info0
+.La106:
+	.uleb128	19
 	.ascii	"TFITNESSRESULT\000"
 	.uleb128	112
-	.uleb128	18
+	.uleb128	20
 	.ascii	"score\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
 	.long	.La21-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"metrics\000"
 	.byte	2
 	.byte	35
 	.uleb128	8
-	.long	.La100-.Ldebug_info0
-	.uleb128	18
+	.long	.La107-.Ldebug_info0
+	.uleb128	20
 	.ascii	"tag\000"
 	.byte	2
 	.byte	35
 	.uleb128	72
-	.long	.La102-.Ldebug_info0
-	.uleb128	18
+	.long	.La109-.Ldebug_info0
+	.uleb128	20
 	.ascii	"version\000"
 	.byte	2
 	.byte	35
 	.uleb128	104
-	.long	.La104-.Ldebug_info0
-	.uleb128	18
+	.long	.La111-.Ldebug_info0
+	.uleb128	20
 	.ascii	"passed\000"
 	.byte	2
 	.byte	35
 	.uleb128	106
 	.long	.La23-.Ldebug_info0
 	.byte	0
-.La74:
+.La76:
 	.uleb128	11
-	.long	.La73-.Ldebug_info0
+	.long	.La75-.Ldebug_info0
 # Definition TInstruction
-.La95:
-	.uleb128	12
+.La102:
+	.uleb128	14
 	.ascii	"TInstruction\000"
-	.long	.La106-.Ldebug_info0
-.La106:
-	.uleb128	17
+	.long	.La113-.Ldebug_info0
+.La113:
+	.uleb128	19
 	.ascii	"TINSTRUCTION\000"
 	.uleb128	8
-	.uleb128	18
+	.uleb128	20
 	.ascii	"opcode\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
-	.long	.La104-.Ldebug_info0
-	.uleb128	18
+	.long	.La111-.Ldebug_info0
+	.uleb128	20
 	.ascii	"flags\000"
 	.byte	2
 	.byte	35
 	.uleb128	2
 	.long	.La3-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"pad\000"
 	.byte	2
 	.byte	35
 	.uleb128	3
 	.long	.La3-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"imm\000"
 	.byte	2
 	.byte	35
 	.uleb128	4
 	.long	.La19-.Ldebug_info0
 	.byte	0
-.La96:
+.La103:
 	.uleb128	11
-	.long	.La95-.Ldebug_info0
+	.long	.La102-.Ldebug_info0
 # Defs - End unit SOMA_TYPES has index 8
 # Defs - Begin unit WINDOWS has index 5
 # Defs - End unit WINDOWS has index 5
-# Defs - Begin unit SYSCONST has index 15
-# Defs - End unit SYSCONST has index 15
-# Defs - Begin unit WINDIRS has index 16
-# Defs - End unit WINDIRS has index 16
-# Defs - Begin unit SYSUTILS has index 14
-# Defs - End unit SYSUTILS has index 14
-# Defs - Begin unit MATH has index 13
-# Defs - End unit MATH has index 13
+# Defs - Begin unit SYSCONST has index 14
+# Defs - End unit SYSCONST has index 14
+# Defs - Begin unit WINDIRS has index 15
+# Defs - End unit WINDIRS has index 15
+# Defs - Begin unit SYSUTILS has index 13
+# Defs - End unit SYSUTILS has index 13
+# Defs - Begin unit MATH has index 12
+# Defs - End unit MATH has index 12
 # Defs - Begin unit SOMA_CORE has index 9
 # Defs - End unit SOMA_CORE has index 9
 # Defs - Begin unit SOMA_MUTATE has index 11
@@ -3762,121 +4162,121 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 # Defs - End unit JSONREADER has index 27
 # Defs - Begin unit JSONPARSER has index 18
 # Defs - End unit JSONPARSER has index 18
-# Defs - Begin unit SOMA_FITNESS has index 12
+# Defs - Begin unit SOMA_FITNESS has index 16
 # Definition TFitnessTarget
 .La31:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TFitnessTarget\000"
-	.long	.La107-.Ldebug_info0
-.La107:
-	.uleb128	17
+	.long	.La114-.Ldebug_info0
+.La114:
+	.uleb128	19
 	.ascii	"TFITNESSTARGET\000"
 	.uleb128	40
-	.uleb128	18
+	.uleb128	20
 	.ascii	"name\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
-	.long	.La108-.Ldebug_info0
-	.uleb128	18
+	.long	.La115-.Ldebug_info0
+	.uleb128	20
 	.ascii	"version\000"
 	.byte	2
 	.byte	35
 	.uleb128	8
-	.long	.La104-.Ldebug_info0
-	.uleb128	18
+	.long	.La111-.Ldebug_info0
+	.uleb128	20
 	.ascii	"input_count\000"
 	.byte	2
 	.byte	35
 	.uleb128	12
 	.long	.La19-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"input_min\000"
 	.byte	2
 	.byte	35
 	.uleb128	16
-	.long	.La75-.Ldebug_info0
-	.uleb128	18
+	.long	.La77-.Ldebug_info0
+	.uleb128	20
 	.ascii	"input_max\000"
 	.byte	2
 	.byte	35
 	.uleb128	24
-	.long	.La75-.Ldebug_info0
-	.uleb128	18
+	.long	.La77-.Ldebug_info0
+	.uleb128	20
 	.ascii	"criteria\000"
 	.byte	2
 	.byte	35
 	.uleb128	32
-	.long	.La110-.Ldebug_info0
+	.long	.La117-.Ldebug_info0
 	.byte	0
 .La32:
 	.uleb128	11
 	.long	.La31-.Ldebug_info0
-# Defs - End unit SOMA_FITNESS has index 12
+# Defs - End unit SOMA_FITNESS has index 16
 # Defs - Begin unit SOMA_HYPERVISOR has index 10
 # Definition PVMState
 .La5:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"PVMState\000"
-	.long	.La112-.Ldebug_info0
-.La112:
+	.long	.La119-.Ldebug_info0
+.La119:
 	.uleb128	10
-	.long	.La113-.Ldebug_info0
+	.long	.La120-.Ldebug_info0
 .La6:
 	.uleb128	11
 	.long	.La5-.Ldebug_info0
 # Definition TColonyThread
 .La7:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TColonyThread\000"
-	.long	.La115-.Ldebug_info0
-.La115:
-	.uleb128	17
+	.long	.La122-.Ldebug_info0
+.La122:
+	.uleb128	19
 	.ascii	"TCOLONYTHREAD\000"
 	.uleb128	56
-	.uleb128	18
+	.uleb128	20
 	.ascii	"thread_id\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
 	.long	.La29-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"state\000"
 	.byte	2
 	.byte	35
 	.uleb128	8
 	.long	.La5-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"raw_alloc\000"
 	.byte	2
 	.byte	35
 	.uleb128	16
-	.long	.La67-.Ldebug_info0
-	.uleb128	18
+	.long	.La33-.Ldebug_info0
+	.uleb128	20
 	.ascii	"active\000"
 	.byte	2
 	.byte	35
 	.uleb128	24
 	.long	.La23-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"colony_id\000"
 	.byte	2
 	.byte	35
 	.uleb128	28
 	.long	.La19-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"fitness\000"
 	.byte	2
 	.byte	35
 	.uleb128	32
 	.long	.La21-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"exec_cycles\000"
 	.byte	2
 	.byte	35
 	.uleb128	40
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"generation\000"
 	.byte	2
 	.byte	35
@@ -3888,15 +4288,15 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La7-.Ldebug_info0
 # Definition TPopulation
 .La9:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TPopulation\000"
-	.long	.La116-.Ldebug_info0
-.La116:
-	.uleb128	19
+	.long	.La123-.Ldebug_info0
+.La123:
+	.uleb128	21
 	.ascii	"TPopulation\000"
 	.uleb128	4194304
-	.long	.La71-.Ldebug_info0
-	.uleb128	20
+	.long	.La73-.Ldebug_info0
+	.uleb128	13
 	.sleb128	0
 	.sleb128	127
 	.uleb128	32768
@@ -3907,15 +4307,15 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La9-.Ldebug_info0
 # Definition TFitnessArr
 .La11:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TFitnessArr\000"
-	.long	.La117-.Ldebug_info0
-.La117:
-	.uleb128	19
+	.long	.La124-.Ldebug_info0
+.La124:
+	.uleb128	21
 	.ascii	"TFitnessArr\000"
 	.uleb128	1024
 	.long	.La21-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	127
 	.uleb128	8
@@ -3926,77 +4326,77 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La11-.Ldebug_info0
 # Definition TSOMAShmem
 .La13:
-	.uleb128	12
+	.uleb128	14
 	.ascii	"TSOMAShmem\000"
-	.long	.La118-.Ldebug_info0
-.La118:
-	.uleb128	17
+	.long	.La125-.Ldebug_info0
+.La125:
+	.uleb128	19
 	.ascii	"TSOMASHMEM\000"
 	.uleb128	64
-	.uleb128	18
+	.uleb128	20
 	.ascii	"magic\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
 	.long	.La29-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"generation\000"
 	.byte	2
 	.byte	35
 	.uleb128	4
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"active_colonies\000"
 	.byte	2
 	.byte	35
 	.uleb128	12
 	.long	.La29-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"best_fitness\000"
 	.byte	2
 	.byte	35
 	.uleb128	16
 	.long	.La21-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"avg_fitness\000"
 	.byte	2
 	.byte	35
 	.uleb128	24
 	.long	.La21-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"diversity\000"
 	.byte	2
 	.byte	35
 	.uleb128	32
 	.long	.La21-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"codon_count\000"
 	.byte	2
 	.byte	35
 	.uleb128	40
 	.long	.La29-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"uptime_secs\000"
 	.byte	2
 	.byte	35
 	.uleb128	44
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"pad\000"
 	.byte	2
 	.byte	35
 	.uleb128	52
-	.long	.La119-.Ldebug_info0
+	.long	.La126-.Ldebug_info0
 	.byte	0
 .La14:
 	.uleb128	11
 	.long	.La13-.Ldebug_info0
 # Definition Array[0..15] Of TColonyThread
 .La15:
-	.uleb128	21
+	.uleb128	12
 	.uleb128	896
 	.long	.La7-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	15
 	.uleb128	56
@@ -4015,130 +4415,104 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 # Defs - End unit SOMA_HYPERVISOR has index 10
 # Defs - Begin Staticsymtable
 # Definition <record type>
-.La33:
-	.uleb128	12
-	.ascii	"$ansistrrec17\000"
-	.long	.La121-.Ldebug_info0
-.La121:
-	.uleb128	17
-	.ascii	"$ANSISTRREC17\000"
-	.uleb128	50
-	.byte	0
-.La34:
-	.uleb128	11
-	.long	.La33-.Ldebug_info0
-# Definition <record type>
-.La35:
-	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE\000"
-	.long	.La122-.Ldebug_info0
-.La122:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE\000"
-	.uleb128	18
-	.byte	0
-.La36:
-	.uleb128	11
-	.long	.La35-.Ldebug_info0
-# Definition <record type>
 .La37:
-	.uleb128	12
-	.ascii	"$rtti_header$8\000"
-	.long	.La123-.Ldebug_info0
-.La123:
-	.uleb128	17
-	.ascii	"$RTTI_HEADER$8\000"
-	.uleb128	10
+	.uleb128	14
+	.ascii	"$ansistrrec18\000"
+	.long	.La128-.Ldebug_info0
+.La128:
+	.uleb128	19
+	.ascii	"$ANSISTRREC18\000"
+	.uleb128	51
 	.byte	0
 .La38:
 	.uleb128	11
 	.long	.La37-.Ldebug_info0
 # Definition <record type>
 .La39:
-	.uleb128	12
-	.ascii	"$rtti_ref$\000"
-	.long	.La124-.Ldebug_info0
-.La124:
-	.uleb128	17
-	.ascii	"$RTTI_REF$\000"
-	.uleb128	8
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE\000"
+	.long	.La129-.Ldebug_info0
+.La129:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_PVMSTATE\000"
+	.uleb128	18
 	.byte	0
 .La40:
 	.uleb128	11
 	.long	.La39-.Ldebug_info0
 # Definition <record type>
 .La41:
-	.uleb128	12
-	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
-	.long	.La125-.Ldebug_info0
-.La125:
-	.uleb128	17
-	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
-	.uleb128	47
+	.uleb128	14
+	.ascii	"$rtti_header$8\000"
+	.long	.La130-.Ldebug_info0
+.La130:
+	.uleb128	19
+	.ascii	"$RTTI_HEADER$8\000"
+	.uleb128	10
 	.byte	0
 .La42:
 	.uleb128	11
 	.long	.La41-.Ldebug_info0
 # Definition <record type>
 .La43:
-	.uleb128	12
-	.ascii	"$rtti_header$13\000"
-	.long	.La126-.Ldebug_info0
-.La126:
-	.uleb128	17
-	.ascii	"$RTTI_HEADER$13\000"
-	.uleb128	15
+	.uleb128	14
+	.ascii	"$rtti_ref$\000"
+	.long	.La131-.Ldebug_info0
+.La131:
+	.uleb128	19
+	.ascii	"$RTTI_REF$\000"
+	.uleb128	8
 	.byte	0
 .La44:
 	.uleb128	11
 	.long	.La43-.Ldebug_info0
 # Definition <record type>
 .La45:
-	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
-	.long	.La127-.Ldebug_info0
-.La127:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
-	.uleb128	159
+	.uleb128	14
+	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
+	.long	.La132-.Ldebug_info0
+.La132:
+	.uleb128	19
+	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
+	.uleb128	47
 	.byte	0
 .La46:
 	.uleb128	11
 	.long	.La45-.Ldebug_info0
 # Definition <record type>
 .La47:
-	.uleb128	12
-	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
-	.long	.La128-.Ldebug_info0
-.La128:
-	.uleb128	17
-	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
-	.uleb128	54
+	.uleb128	14
+	.ascii	"$rtti_header$13\000"
+	.long	.La133-.Ldebug_info0
+.La133:
+	.uleb128	19
+	.ascii	"$RTTI_HEADER$13\000"
+	.uleb128	15
 	.byte	0
 .La48:
 	.uleb128	11
 	.long	.La47-.Ldebug_info0
 # Definition <record type>
 .La49:
-	.uleb128	12
-	.ascii	"$rtti_normal_array$2\000"
-	.long	.La129-.Ldebug_info0
-.La129:
-	.uleb128	17
-	.ascii	"$RTTI_NORMAL_ARRAY$2\000"
-	.uleb128	41
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
+	.long	.La134-.Ldebug_info0
+.La134:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TCOLONYTHREAD\000"
+	.uleb128	159
 	.byte	0
 .La50:
 	.uleb128	11
 	.long	.La49-.Ldebug_info0
 # Definition <record type>
 .La51:
-	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
-	.long	.La130-.Ldebug_info0
-.La130:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
+	.uleb128	14
+	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
+	.long	.La135-.Ldebug_info0
+.La135:
+	.uleb128	19
+	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
 	.uleb128	54
 	.byte	0
 .La52:
@@ -4146,150 +4520,176 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	.La51-.Ldebug_info0
 # Definition <record type>
 .La53:
-	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TFITNESSARR\000"
-	.long	.La131-.Ldebug_info0
-.La131:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TFITNESSARR\000"
-	.uleb128	46
+	.uleb128	14
+	.ascii	"$rtti_normal_array$2\000"
+	.long	.La136-.Ldebug_info0
+.La136:
+	.uleb128	19
+	.ascii	"$RTTI_NORMAL_ARRAY$2\000"
+	.uleb128	41
 	.byte	0
 .La54:
 	.uleb128	11
 	.long	.La53-.Ldebug_info0
 # Definition <record type>
 .La55:
-	.uleb128	12
-	.ascii	"$rtti_normal_array$1\000"
-	.long	.La132-.Ldebug_info0
-.La132:
-	.uleb128	17
-	.ascii	"$RTTI_NORMAL_ARRAY$1\000"
-	.uleb128	33
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
+	.long	.La137-.Ldebug_info0
+.La137:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TPOPULATION\000"
+	.uleb128	54
 	.byte	0
 .La56:
 	.uleb128	11
 	.long	.La55-.Ldebug_info0
 # Definition <record type>
 .La57:
-	.uleb128	12
-	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
-	.long	.La133-.Ldebug_info0
-.La133:
-	.uleb128	17
-	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
-	.uleb128	44
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TFITNESSARR\000"
+	.long	.La138-.Ldebug_info0
+.La138:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TFITNESSARR\000"
+	.uleb128	46
 	.byte	0
 .La58:
 	.uleb128	11
 	.long	.La57-.Ldebug_info0
 # Definition <record type>
 .La59:
-	.uleb128	12
-	.ascii	"$rtti_header$10\000"
-	.long	.La134-.Ldebug_info0
-.La134:
-	.uleb128	17
-	.ascii	"$RTTI_HEADER$10\000"
-	.uleb128	12
+	.uleb128	14
+	.ascii	"$rtti_normal_array$1\000"
+	.long	.La139-.Ldebug_info0
+.La139:
+	.uleb128	19
+	.ascii	"$RTTI_NORMAL_ARRAY$1\000"
+	.uleb128	33
 	.byte	0
 .La60:
 	.uleb128	11
 	.long	.La59-.Ldebug_info0
 # Definition <record type>
 .La61:
-	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_def00000005\000"
-	.long	.La135-.Ldebug_info0
-.La135:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_DEF00000005\000"
-	.uleb128	35
+	.uleb128	14
+	.ascii	"$rttidef$INIT_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
+	.long	.La140-.Ldebug_info0
+.La140:
+	.uleb128	19
+	.ascii	"$RTTIDEF$INIT_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
+	.uleb128	44
 	.byte	0
 .La62:
 	.uleb128	11
 	.long	.La61-.Ldebug_info0
 # Definition <record type>
 .La63:
+	.uleb128	14
+	.ascii	"$rtti_header$10\000"
+	.long	.La141-.Ldebug_info0
+.La141:
+	.uleb128	19
+	.ascii	"$RTTI_HEADER$10\000"
 	.uleb128	12
-	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
-	.long	.La136-.Ldebug_info0
-.La136:
-	.uleb128	17
-	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
-	.uleb128	172
 	.byte	0
 .La64:
 	.uleb128	11
 	.long	.La63-.Ldebug_info0
+# Definition <record type>
+.La65:
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_def00000005\000"
+	.long	.La142-.Ldebug_info0
+.La142:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_DEF00000005\000"
+	.uleb128	35
+	.byte	0
+.La66:
+	.uleb128	11
+	.long	.La65-.Ldebug_info0
+# Definition <record type>
+.La67:
+	.uleb128	14
+	.ascii	"$rttidef$RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
+	.long	.La143-.Ldebug_info0
+.La143:
+	.uleb128	19
+	.ascii	"$RTTIDEF$RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM\000"
+	.uleb128	172
+	.byte	0
+.La68:
+	.uleb128	11
+	.long	.La67-.Ldebug_info0
 # Defs - End Staticsymtable
 # Definition SmallInt
-.La97:
-	.uleb128	12
-	.ascii	"SmallInt\000"
-	.long	.La137-.Ldebug_info0
-.La137:
+.La104:
 	.uleb128	14
+	.ascii	"SmallInt\000"
+	.long	.La144-.Ldebug_info0
+.La144:
+	.uleb128	16
 	.ascii	"SmallInt\000"
 	.byte	5
 	.byte	2
-.La98:
+.La105:
 	.uleb128	11
-	.long	.La97-.Ldebug_info0
+	.long	.La104-.Ldebug_info0
 # Definition TFitnessResult.Array[0..7] Of Double
-.La100:
-	.uleb128	21
+.La107:
+	.uleb128	12
 	.uleb128	64
 	.long	.La21-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	7
 	.uleb128	8
 	.long	.La1-.Ldebug_info0
 	.byte	0
-.La101:
+.La108:
 	.uleb128	11
-	.long	.La100-.Ldebug_info0
+	.long	.La107-.Ldebug_info0
 # Definition TFitnessResult.Array[0..31] Of Char
-.La102:
-	.uleb128	21
+.La109:
+	.uleb128	12
 	.uleb128	32
-	.long	.La88-.Ldebug_info0
-	.uleb128	20
+	.long	.La94-.Ldebug_info0
+	.uleb128	13
 	.sleb128	0
 	.sleb128	31
 	.uleb128	1
 	.long	.La1-.Ldebug_info0
 	.byte	0
-.La103:
+.La110:
 	.uleb128	11
-	.long	.La102-.Ldebug_info0
+	.long	.La109-.Ldebug_info0
 # Definition Word
-.La104:
-	.uleb128	12
-	.ascii	"Word\000"
-	.long	.La138-.Ldebug_info0
-.La138:
+.La111:
 	.uleb128	14
+	.ascii	"Word\000"
+	.long	.La145-.Ldebug_info0
+.La145:
+	.uleb128	16
 	.ascii	"Word\000"
 	.byte	7
 	.byte	2
-.La105:
+.La112:
 	.uleb128	11
-	.long	.La104-.Ldebug_info0
+	.long	.La111-.Ldebug_info0
 # Definition AnsiString
-.La108:
-	.uleb128	12
+.La115:
+	.uleb128	14
 	.ascii	"AnsiString\000"
-	.long	.La139-.Ldebug_info0
-.La139:
-	.uleb128	15
+	.long	.La146-.Ldebug_info0
+.La146:
+	.uleb128	17
 	.ascii	"AnsiString\000"
 	.byte	2
 	.byte	151
 	.byte	6
-	.long	.La88-.Ldebug_info0
-	.uleb128	16
+	.long	.La94-.Ldebug_info0
+	.uleb128	18
 	.uleb128	1
 	.byte	13
 	.byte	151
@@ -4304,16 +4704,16 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	28
 	.byte	6
 	.byte	0
-.La109:
+.La116:
 	.uleb128	11
-	.long	.La108-.Ldebug_info0
+	.long	.La115-.Ldebug_info0
 # Definition TFitnessTarget.{Dynamic} Array Of TFitnessCriterion
-.La110:
+.La117:
 	.uleb128	22
 	.byte	2
 	.byte	151
 	.byte	6
-	.long	.La140-.Ldebug_info0
+	.long	.La147-.Ldebug_info0
 	.uleb128	23
 	.uleb128	16
 	.uleb128	0
@@ -4332,183 +4732,183 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	6
 	.long	.La19-.Ldebug_info0
 	.byte	0
-.La111:
+.La118:
 	.uleb128	11
-	.long	.La110-.Ldebug_info0
+	.long	.La117-.Ldebug_info0
 # Definition TVMState
-.La113:
-	.uleb128	12
+.La120:
+	.uleb128	14
 	.ascii	"TVMState\000"
-	.long	.La142-.Ldebug_info0
-.La142:
-	.uleb128	17
+	.long	.La149-.Ldebug_info0
+.La149:
+	.uleb128	19
 	.ascii	"TVMSTATE\000"
 	.uleb128	37184
-	.uleb128	18
+	.uleb128	20
 	.ascii	"guard\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
-	.long	.La143-.Ldebug_info0
-	.uleb128	18
+	.long	.La150-.Ldebug_info0
+	.uleb128	20
 	.ascii	"istack\000"
 	.byte	3
 	.byte	35
 	.uleb128	256
-	.long	.La145-.Ldebug_info0
-	.uleb128	18
+	.long	.La152-.Ldebug_info0
+	.uleb128	20
 	.ascii	"fstack\000"
 	.byte	3
 	.byte	35
 	.uleb128	2304
-	.long	.La147-.Ldebug_info0
-	.uleb128	18
+	.long	.La154-.Ldebug_info0
+	.uleb128	20
 	.ascii	"isp\000"
 	.byte	3
 	.byte	35
 	.uleb128	4352
-	.long	.La75-.Ldebug_info0
-	.uleb128	18
+	.long	.La77-.Ldebug_info0
+	.uleb128	20
 	.ascii	"fsp\000"
 	.byte	3
 	.byte	35
 	.uleb128	4360
-	.long	.La75-.Ldebug_info0
-	.uleb128	18
+	.long	.La77-.Ldebug_info0
+	.uleb128	20
 	.ascii	"ip\000"
 	.byte	3
 	.byte	35
 	.uleb128	4368
-	.long	.La75-.Ldebug_info0
-	.uleb128	18
+	.long	.La77-.Ldebug_info0
+	.uleb128	20
 	.ascii	"rng_state\000"
 	.byte	3
 	.byte	35
 	.uleb128	4376
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"halt_reason\000"
 	.byte	3
 	.byte	35
 	.uleb128	4384
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"genome\000"
 	.byte	3
 	.byte	35
 	.uleb128	4392
-	.long	.La71-.Ldebug_info0
-	.uleb128	18
+	.long	.La73-.Ldebug_info0
+	.uleb128	20
 	.ascii	"exec_count\000"
 	.byte	4
 	.byte	35
 	.uleb128	37160
 	.long	.La17-.Ldebug_info0
-	.uleb128	18
+	.uleb128	20
 	.ascii	"pad\000"
 	.byte	4
 	.byte	35
 	.uleb128	37168
-	.long	.La149-.Ldebug_info0
+	.long	.La156-.Ldebug_info0
 	.byte	0
-.La114:
+.La121:
 	.uleb128	11
-	.long	.La113-.Ldebug_info0
+	.long	.La120-.Ldebug_info0
 # Definition TSOMAShmem.Array[0..11] Of Byte
-.La119:
-	.uleb128	21
+.La126:
+	.uleb128	12
 	.uleb128	12
 	.long	.La3-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	11
 	.uleb128	1
 	.long	.La1-.Ldebug_info0
 	.byte	0
-.La120:
+.La127:
 	.uleb128	11
-	.long	.La119-.Ldebug_info0
+	.long	.La126-.Ldebug_info0
 # Definition TFitnessCriterion
-.La140:
-	.uleb128	12
+.La147:
+	.uleb128	14
 	.ascii	"TFitnessCriterion\000"
-	.long	.La151-.Ldebug_info0
-.La151:
-	.uleb128	17
+	.long	.La158-.Ldebug_info0
+.La158:
+	.uleb128	19
 	.ascii	"TFITNESSCRITERION\000"
 	.uleb128	16
-	.uleb128	18
+	.uleb128	20
 	.ascii	"metric\000"
 	.byte	2
 	.byte	35
 	.uleb128	0
-	.long	.La108-.Ldebug_info0
-	.uleb128	18
+	.long	.La115-.Ldebug_info0
+	.uleb128	20
 	.ascii	"weight\000"
 	.byte	2
 	.byte	35
 	.uleb128	8
 	.long	.La21-.Ldebug_info0
 	.byte	0
-.La141:
+.La148:
 	.uleb128	11
-	.long	.La140-.Ldebug_info0
+	.long	.La147-.Ldebug_info0
 # Definition TVMState.Array[0..255] Of Byte
-.La143:
-	.uleb128	21
+.La150:
+	.uleb128	12
 	.uleb128	256
 	.long	.La3-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	255
 	.uleb128	1
 	.long	.La3-.Ldebug_info0
 	.byte	0
-.La144:
+.La151:
 	.uleb128	11
-	.long	.La143-.Ldebug_info0
+	.long	.La150-.Ldebug_info0
 # Definition TVMState.Array[0..255] Of Int64
-.La145:
-	.uleb128	21
+.La152:
+	.uleb128	12
 	.uleb128	2048
-	.long	.La75-.Ldebug_info0
-	.uleb128	20
+	.long	.La77-.Ldebug_info0
+	.uleb128	13
 	.sleb128	0
 	.sleb128	255
 	.uleb128	8
 	.long	.La3-.Ldebug_info0
 	.byte	0
-.La146:
+.La153:
 	.uleb128	11
-	.long	.La145-.Ldebug_info0
+	.long	.La152-.Ldebug_info0
 # Definition TVMState.Array[0..255] Of Double
-.La147:
-	.uleb128	21
+.La154:
+	.uleb128	12
 	.uleb128	2048
 	.long	.La21-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	255
 	.uleb128	8
 	.long	.La3-.Ldebug_info0
 	.byte	0
-.La148:
+.La155:
 	.uleb128	11
-	.long	.La147-.Ldebug_info0
+	.long	.La154-.Ldebug_info0
 # Definition TVMState.Array[0..15] Of Byte
-.La149:
-	.uleb128	21
+.La156:
+	.uleb128	12
 	.uleb128	16
 	.long	.La3-.Ldebug_info0
-	.uleb128	20
+	.uleb128	13
 	.sleb128	0
 	.sleb128	15
 	.uleb128	1
 	.long	.La1-.Ldebug_info0
 	.byte	0
-.La150:
+.La157:
 	.uleb128	11
-	.long	.La149-.Ldebug_info0
+	.long	.La156-.Ldebug_info0
 	.byte	0
 .Ledebug_info0:
 # End asmlist al_dwarf_info
@@ -4565,6 +4965,18 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 # Abbrev 4
 	.uleb128	4
+	.uleb128	52
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	73
+	.uleb128	19
+	.uleb128	28
+	.uleb128	10
+	.byte	0
+	.byte	0
+# Abbrev 5
+	.uleb128	5
 	.uleb128	46
 	.byte	1
 	.uleb128	3
@@ -4581,21 +4993,9 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	1
 	.byte	0
 	.byte	0
-# Abbrev 5
-	.uleb128	5
-	.uleb128	5
-	.byte	0
-	.uleb128	3
-	.uleb128	8
-	.uleb128	2
-	.uleb128	10
-	.uleb128	73
-	.uleb128	19
-	.byte	0
-	.byte	0
 # Abbrev 6
 	.uleb128	6
-	.uleb128	52
+	.uleb128	5
 	.byte	0
 	.uleb128	3
 	.uleb128	8
@@ -4607,18 +5007,14 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 # Abbrev 7
 	.uleb128	7
-	.uleb128	46
-	.byte	1
+	.uleb128	52
+	.byte	0
 	.uleb128	3
 	.uleb128	8
-	.uleb128	39
-	.uleb128	12
-	.uleb128	54
-	.uleb128	11
-	.uleb128	17
-	.uleb128	1
-	.uleb128	18
-	.uleb128	1
+	.uleb128	2
+	.uleb128	10
+	.uleb128	73
+	.uleb128	19
 	.byte	0
 	.byte	0
 # Abbrev 8
@@ -4631,8 +5027,6 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	12
 	.uleb128	54
 	.uleb128	11
-	.uleb128	73
-	.uleb128	19
 	.uleb128	17
 	.uleb128	1
 	.uleb128	18
@@ -4641,14 +5035,20 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 # Abbrev 9
 	.uleb128	9
-	.uleb128	52
-	.byte	0
+	.uleb128	46
+	.byte	1
 	.uleb128	3
 	.uleb128	8
+	.uleb128	39
+	.uleb128	12
+	.uleb128	54
+	.uleb128	11
 	.uleb128	73
 	.uleb128	19
-	.uleb128	28
-	.uleb128	10
+	.uleb128	17
+	.uleb128	1
+	.uleb128	18
+	.uleb128	1
 	.byte	0
 	.byte	0
 # Abbrev 10
@@ -4669,90 +5069,16 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 # Abbrev 12
 	.uleb128	12
-	.uleb128	22
-	.byte	0
-	.uleb128	3
-	.uleb128	8
+	.uleb128	1
+	.byte	1
+	.uleb128	11
+	.uleb128	15
 	.uleb128	73
 	.uleb128	19
 	.byte	0
 	.byte	0
 # Abbrev 13
 	.uleb128	13
-	.uleb128	15
-	.byte	0
-	.byte	0
-	.byte	0
-# Abbrev 14
-	.uleb128	14
-	.uleb128	36
-	.byte	0
-	.uleb128	3
-	.uleb128	8
-	.uleb128	62
-	.uleb128	11
-	.uleb128	11
-	.uleb128	11
-	.byte	0
-	.byte	0
-# Abbrev 15
-	.uleb128	15
-	.uleb128	1
-	.byte	1
-	.uleb128	3
-	.uleb128	8
-	.uleb128	80
-	.uleb128	10
-	.uleb128	73
-	.uleb128	19
-	.byte	0
-	.byte	0
-# Abbrev 16
-	.uleb128	16
-	.uleb128	33
-	.byte	0
-	.uleb128	34
-	.uleb128	15
-	.uleb128	47
-	.uleb128	10
-	.byte	0
-	.byte	0
-# Abbrev 17
-	.uleb128	17
-	.uleb128	19
-	.byte	1
-	.uleb128	3
-	.uleb128	8
-	.uleb128	11
-	.uleb128	15
-	.byte	0
-	.byte	0
-# Abbrev 18
-	.uleb128	18
-	.uleb128	13
-	.byte	0
-	.uleb128	3
-	.uleb128	8
-	.uleb128	56
-	.uleb128	10
-	.uleb128	73
-	.uleb128	19
-	.byte	0
-	.byte	0
-# Abbrev 19
-	.uleb128	19
-	.uleb128	1
-	.byte	1
-	.uleb128	3
-	.uleb128	8
-	.uleb128	11
-	.uleb128	15
-	.uleb128	73
-	.uleb128	19
-	.byte	0
-	.byte	0
-# Abbrev 20
-	.uleb128	20
 	.uleb128	33
 	.byte	0
 	.uleb128	34
@@ -4765,10 +5091,84 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.uleb128	19
 	.byte	0
 	.byte	0
+# Abbrev 14
+	.uleb128	14
+	.uleb128	22
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
+# Abbrev 15
+	.uleb128	15
+	.uleb128	15
+	.byte	0
+	.byte	0
+	.byte	0
+# Abbrev 16
+	.uleb128	16
+	.uleb128	36
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	62
+	.uleb128	11
+	.uleb128	11
+	.uleb128	11
+	.byte	0
+	.byte	0
+# Abbrev 17
+	.uleb128	17
+	.uleb128	1
+	.byte	1
+	.uleb128	3
+	.uleb128	8
+	.uleb128	80
+	.uleb128	10
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
+# Abbrev 18
+	.uleb128	18
+	.uleb128	33
+	.byte	0
+	.uleb128	34
+	.uleb128	15
+	.uleb128	47
+	.uleb128	10
+	.byte	0
+	.byte	0
+# Abbrev 19
+	.uleb128	19
+	.uleb128	19
+	.byte	1
+	.uleb128	3
+	.uleb128	8
+	.uleb128	11
+	.uleb128	15
+	.byte	0
+	.byte	0
+# Abbrev 20
+	.uleb128	20
+	.uleb128	13
+	.byte	0
+	.uleb128	3
+	.uleb128	8
+	.uleb128	56
+	.uleb128	10
+	.uleb128	73
+	.uleb128	19
+	.byte	0
+	.byte	0
 # Abbrev 21
 	.uleb128	21
 	.uleb128	1
 	.byte	1
+	.uleb128	3
+	.uleb128	8
 	.uleb128	11
 	.uleb128	15
 	.uleb128	73
@@ -4838,27 +5238,27 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 .Lehdebug_line0:
 # === header end ===
 # function: SOMA_HYPERVISOR_$$_ALLOCALIGNED$QWORD$POINTER$$POINTER
-# [77:1]
+# [86:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll1
 	.byte	5
 	.uleb128	1
-	.byte	88
-# [78:29]
+	.byte	97
+# [87:29]
 	.byte	2
 	.uleb128	.Ll2-.Ll1
 	.byte	5
 	.uleb128	29
 	.byte	13
-# [80:13]
+# [89:13]
 	.byte	2
 	.uleb128	.Ll3-.Ll2
 	.byte	5
 	.uleb128	13
 	.byte	14
-# [82:1]
+# [91:1]
 	.byte	2
 	.uleb128	.Ll4-.Ll3
 	.byte	5
@@ -4873,21 +5273,21 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_INITSHAREDMEMORY
-# [91:1]
+# [100:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll6
 	.byte	5
 	.uleb128	1
-	.byte	102
-# [97:3]
+	.byte	111
+# [106:3]
 	.byte	2
 	.uleb128	.Ll7-.Ll6
 	.byte	5
 	.uleb128	3
 	.byte	18
-# [92:18]
+# [101:18]
 	.byte	2
 	.uleb128	.Ll8-.Ll7
 	.byte	5
@@ -4895,53 +5295,53 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	3
 	.sleb128	-5
 	.byte	1
-# [98:18]
+# [107:18]
 	.byte	2
 	.uleb128	.Ll9-.Ll8
 	.byte	18
-# [100:5]
+# [109:5]
 	.byte	2
 	.uleb128	.Ll10-.Ll9
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [101:5]
+# [110:5]
 	.byte	2
 	.uleb128	.Ll11-.Ll10
 	.byte	13
-# [102:5]
+# [111:5]
 	.byte	2
 	.uleb128	.Ll12-.Ll11
 	.byte	13
-# [104:12]
+# [113:12]
 	.byte	2
 	.uleb128	.Ll13-.Ll12
 	.byte	5
 	.uleb128	12
 	.byte	14
-# [105:12]
+# [114:12]
 	.byte	2
 	.uleb128	.Ll14-.Ll13
 	.byte	13
-# [106:5]
+# [115:5]
 	.byte	2
 	.uleb128	.Ll15-.Ll14
 	.byte	5
 	.uleb128	5
 	.byte	13
-# [109:20]
+# [118:20]
 	.byte	2
 	.uleb128	.Ll16-.Ll15
 	.byte	5
 	.uleb128	20
 	.byte	15
-# [110:11]
+# [119:11]
 	.byte	2
 	.uleb128	.Ll17-.Ll16
 	.byte	5
 	.uleb128	11
 	.byte	13
-# [112:1]
+# [121:1]
 	.byte	2
 	.uleb128	.Ll18-.Ll17
 	.byte	5
@@ -4956,27 +5356,27 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_CLOSESHAREDMEMORY
-# [115:1]
+# [124:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll20
 	.byte	5
 	.uleb128	1
-	.byte	126
-# [116:12]
+	.byte	135
+# [125:12]
 	.byte	2
 	.uleb128	.Ll21-.Ll20
 	.byte	5
 	.uleb128	12
 	.byte	13
-# [117:18]
+# [126:18]
 	.byte	2
 	.uleb128	.Ll22-.Ll21
 	.byte	5
 	.uleb128	18
 	.byte	13
-# [118:1]
+# [127:1]
 	.byte	2
 	.uleb128	.Ll23-.Ll22
 	.byte	5
@@ -4991,39 +5391,39 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_READTSC$$QWORD
-# [123:1]
+# [132:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll25
 	.byte	5
 	.uleb128	1
-	.byte	134
-# [125:5]
+	.byte	143
+# [134:5]
 	.byte	2
 	.uleb128	.Ll26-.Ll25
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [126:5]
+# [135:5]
 	.byte	2
 	.uleb128	.Ll27-.Ll26
 	.byte	13
-# [127:5]
+# [136:5]
 	.byte	2
 	.uleb128	.Ll28-.Ll27
 	.byte	13
-# [128:5]
+# [137:5]
 	.byte	2
 	.uleb128	.Ll29-.Ll28
 	.byte	13
-# [130:3]
+# [139:3]
 	.byte	2
 	.uleb128	.Ll30-.Ll29
 	.byte	5
 	.uleb128	3
 	.byte	14
-# [131:1]
+# [140:1]
 	.byte	2
 	.uleb128	.Ll31-.Ll30
 	.byte	5
@@ -5038,51 +5438,51 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_UPDATESHAREDMEMORY
-# [134:1]
+# [143:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll33
 	.byte	5
 	.uleb128	1
-	.byte	145
-# [135:12]
+	.byte	154
+# [144:12]
 	.byte	2
 	.uleb128	.Ll34-.Ll33
 	.byte	5
 	.uleb128	12
 	.byte	13
-# [136:9]
+# [145:9]
 	.byte	2
 	.uleb128	.Ll35-.Ll34
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [137:9]
+# [146:9]
 	.byte	2
 	.uleb128	.Ll36-.Ll35
 	.byte	13
-# [138:9]
+# [147:9]
 	.byte	2
 	.uleb128	.Ll37-.Ll36
 	.byte	13
-# [139:9]
+# [148:9]
 	.byte	2
 	.uleb128	.Ll38-.Ll37
 	.byte	13
-# [140:30]
+# [149:30]
 	.byte	2
 	.uleb128	.Ll39-.Ll38
 	.byte	5
 	.uleb128	30
 	.byte	13
-# [141:9]
+# [150:9]
 	.byte	2
 	.uleb128	.Ll40-.Ll39
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [142:1]
+# [151:1]
 	.byte	2
 	.uleb128	.Ll41-.Ll40
 	.byte	5
@@ -5097,49 +5497,49 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_RANDOMGENOME$TGENOME$QWORD
-# [151:1]
+# [160:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll43
 	.byte	5
 	.uleb128	1
-	.byte	162
-# [152:3]
+	.byte	171
+# [161:3]
 	.byte	2
 	.uleb128	.Ll44-.Ll43
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [154:5]
+# [163:5]
 	.byte	2
 	.uleb128	.Ll45-.Ll44
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [155:38]
+# [164:38]
 	.byte	2
 	.uleb128	.Ll46-.Ll45
 	.byte	5
 	.uleb128	38
 	.byte	13
-# [156:7]
+# [165:7]
 	.byte	2
 	.uleb128	.Ll47-.Ll46
 	.byte	5
 	.uleb128	7
 	.byte	13
-# [157:7]
+# [166:7]
 	.byte	2
 	.uleb128	.Ll48-.Ll47
 	.byte	13
-# [158:26]
+# [167:26]
 	.byte	2
 	.uleb128	.Ll49-.Ll48
 	.byte	5
 	.uleb128	26
 	.byte	13
-# [152:3]
+# [161:3]
 	.byte	2
 	.uleb128	.Ll50-.Ll49
 	.byte	5
@@ -5147,7 +5547,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	3
 	.sleb128	-6
 	.byte	1
-# [160:1]
+# [169:1]
 	.byte	2
 	.uleb128	.Ll51-.Ll50
 	.byte	5
@@ -5162,27 +5562,27 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_EVALUATEFITNESS$PVMSTATE$$DOUBLE
-# [173:1]
+# [182:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll53
 	.byte	5
 	.uleb128	1
-	.byte	184
-# [174:9]
+	.byte	193
+# [183:9]
 	.byte	2
 	.uleb128	.Ll54-.Ll53
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [175:3]
+# [184:3]
 	.byte	2
 	.uleb128	.Ll55-.Ll54
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [176:1]
+# [185:1]
 	.byte	2
 	.uleb128	.Ll56-.Ll55
 	.byte	5
@@ -5197,41 +5597,41 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_FINDWORSTIDX$$LONGINT
-# [189:3]
+# [198:3]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll58
 	.byte	5
 	.uleb128	3
-	.byte	200
-# [190:3]
+	.byte	209
+# [199:3]
 	.byte	2
 	.uleb128	.Ll59-.Ll58
 	.byte	13
-# [191:3]
+# [200:3]
 	.byte	2
 	.uleb128	.Ll60-.Ll59
 	.byte	13
-# [192:19]
+# [201:19]
 	.byte	2
 	.uleb128	.Ll61-.Ll60
 	.byte	5
 	.uleb128	19
 	.byte	13
-# [194:28]
+# [203:28]
 	.byte	2
 	.uleb128	.Ll62-.Ll61
 	.byte	5
 	.uleb128	28
 	.byte	14
-# [195:7]
+# [204:7]
 	.byte	2
 	.uleb128	.Ll63-.Ll62
 	.byte	5
 	.uleb128	7
 	.byte	13
-# [191:3]
+# [200:3]
 	.byte	2
 	.uleb128	.Ll64-.Ll63
 	.byte	5
@@ -5239,7 +5639,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	3
 	.sleb128	-4
 	.byte	1
-# [197:1]
+# [206:1]
 	.byte	2
 	.uleb128	.Ll65-.Ll64
 	.byte	5
@@ -5254,63 +5654,63 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_TOURNAMENTSELECT$QWORD$LONGINT$$LONGINT
-# [207:3]
+# [216:3]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll67
 	.byte	5
 	.uleb128	3
-	.byte	218
-# [208:19]
+	.byte	227
+# [217:19]
 	.byte	2
 	.uleb128	.Ll68-.Ll67
 	.byte	5
 	.uleb128	19
 	.byte	13
-# [209:26]
+# [218:26]
 	.byte	2
 	.uleb128	.Ll69-.Ll68
 	.byte	5
 	.uleb128	26
 	.byte	13
-# [211:18]
+# [220:18]
 	.byte	2
 	.uleb128	.Ll70-.Ll69
 	.byte	5
 	.uleb128	18
 	.byte	14
-# [213:5]
+# [222:5]
 	.byte	2
 	.uleb128	.Ll71-.Ll70
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [214:22]
+# [223:22]
 	.byte	2
 	.uleb128	.Ll72-.Ll71
 	.byte	5
 	.uleb128	22
 	.byte	13
-# [215:18]
+# [224:18]
 	.byte	2
 	.uleb128	.Ll73-.Ll72
 	.byte	5
 	.uleb128	18
 	.byte	13
-# [217:30]
+# [226:30]
 	.byte	2
 	.uleb128	.Ll74-.Ll73
 	.byte	5
 	.uleb128	30
 	.byte	14
-# [218:7]
+# [227:7]
 	.byte	2
 	.uleb128	.Ll75-.Ll74
 	.byte	5
 	.uleb128	7
 	.byte	13
-# [211:3]
+# [220:3]
 	.byte	2
 	.uleb128	.Ll76-.Ll75
 	.byte	5
@@ -5318,7 +5718,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	3
 	.sleb128	-7
 	.byte	1
-# [223:1]
+# [232:1]
 	.byte	2
 	.uleb128	.Ll77-.Ll76
 	.byte	5
@@ -5333,877 +5733,1091 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_COLONYTHREADPROC$POINTER$$INT64
-# [238:1]
+# [250:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
 	.quad	.Ll79
 	.byte	5
 	.uleb128	1
-	.byte	249
-# [240:3]
+	.byte	3
+	.sleb128	249
+	.byte	1
+# [252:3]
 	.byte	2
 	.uleb128	.Ll80-.Ll79
 	.byte	5
 	.uleb128	3
 	.byte	14
-# [242:27]
+# [254:27]
 	.byte	2
 	.uleb128	.Ll81-.Ll80
 	.byte	5
 	.uleb128	27
 	.byte	14
-# [243:9]
+# [255:9]
 	.byte	2
 	.uleb128	.Ll82-.Ll81
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [245:3]
+# [257:3]
 	.byte	2
 	.uleb128	.Ll83-.Ll82
 	.byte	5
 	.uleb128	3
 	.byte	14
-# [265:5]
+# [277:5]
 	.byte	2
 	.uleb128	.Ll84-.Ll83
 	.byte	5
 	.uleb128	5
 	.byte	32
-# [266:19]
+# [278:19]
 	.byte	2
 	.uleb128	.Ll85-.Ll84
 	.byte	5
 	.uleb128	19
 	.byte	13
-# [267:29]
+# [279:29]
 	.byte	2
 	.uleb128	.Ll86-.Ll85
 	.byte	5
 	.uleb128	29
 	.byte	13
-# [268:5]
+# [280:5]
 	.byte	2
 	.uleb128	.Ll87-.Ll86
 	.byte	5
 	.uleb128	5
 	.byte	13
-# [269:5]
+# [281:5]
 	.byte	2
 	.uleb128	.Ll88-.Ll87
 	.byte	13
-# [272:5]
+# [284:5]
 	.byte	2
 	.uleb128	.Ll89-.Ll88
 	.byte	15
-# [273:5]
+# [285:5]
 	.byte	2
 	.uleb128	.Ll90-.Ll89
 	.byte	13
-# [274:5]
+# [286:5]
 	.byte	2
 	.uleb128	.Ll91-.Ll90
 	.byte	13
-# [275:5]
+# [287:5]
 	.byte	2
 	.uleb128	.Ll92-.Ll91
 	.byte	13
-# [281:5]
+# [293:5]
 	.byte	2
 	.uleb128	.Ll93-.Ll92
 	.byte	18
-# [283:11]
+# [299:49]
 	.byte	2
 	.uleb128	.Ll94-.Ll93
 	.byte	5
-	.uleb128	11
-	.byte	14
-# [284:5]
+	.uleb128	49
+	.byte	18
+# [300:44]
 	.byte	2
 	.uleb128	.Ll95-.Ll94
 	.byte	5
-	.uleb128	5
+	.uleb128	44
 	.byte	13
-# [285:11]
+# [299:5]
 	.byte	2
 	.uleb128	.Ll96-.Ll95
 	.byte	5
-	.uleb128	11
-	.byte	13
-# [287:28]
+	.uleb128	5
+	.byte	3
+	.sleb128	-1
+	.byte	1
+# [302:11]
 	.byte	2
 	.uleb128	.Ll97-.Ll96
 	.byte	5
-	.uleb128	28
-	.byte	14
-# [288:26]
+	.uleb128	11
+	.byte	15
+# [303:5]
 	.byte	2
 	.uleb128	.Ll98-.Ll97
 	.byte	5
-	.uleb128	26
+	.uleb128	5
 	.byte	13
-# [289:5]
+# [304:11]
 	.byte	2
 	.uleb128	.Ll99-.Ll98
 	.byte	5
-	.uleb128	5
+	.uleb128	11
 	.byte	13
-# [292:19]
+# [306:28]
 	.byte	2
 	.uleb128	.Ll100-.Ll99
 	.byte	5
-	.uleb128	19
-	.byte	15
-# [294:7]
+	.uleb128	28
+	.byte	14
+# [307:26]
 	.byte	2
 	.uleb128	.Ll101-.Ll100
 	.byte	5
-	.uleb128	7
-	.byte	14
-# [295:7]
+	.uleb128	26
+	.byte	13
+# [308:5]
 	.byte	2
 	.uleb128	.Ll102-.Ll101
+	.byte	5
+	.uleb128	5
 	.byte	13
-# [301:7]
+# [309:5]
 	.byte	2
 	.uleb128	.Ll103-.Ll102
-	.byte	18
-# [302:7]
+	.byte	13
+# [312:5]
 	.byte	2
 	.uleb128	.Ll104-.Ll103
-	.byte	13
-# [306:5]
+	.byte	15
+# [313:18]
 	.byte	2
 	.uleb128	.Ll105-.Ll104
 	.byte	5
-	.uleb128	5
-	.byte	16
-# [307:18]
+	.uleb128	18
+	.byte	13
+# [314:34]
 	.byte	2
 	.uleb128	.Ll106-.Ll105
 	.byte	5
-	.uleb128	18
+	.uleb128	34
 	.byte	13
-# [308:34]
+# [316:18]
 	.byte	2
 	.uleb128	.Ll107-.Ll106
 	.byte	5
-	.uleb128	34
-	.byte	13
-# [310:18]
-	.byte	2
-	.uleb128	.Ll108-.Ll107
-	.byte	5
 	.uleb128	18
 	.byte	14
-# [311:18]
+# [317:18]
+	.byte	2
+	.uleb128	.Ll108-.Ll107
+	.byte	13
+# [319:5]
 	.byte	2
 	.uleb128	.Ll109-.Ll108
-	.byte	13
-# [313:5]
-	.byte	2
-	.uleb128	.Ll110-.Ll109
 	.byte	5
 	.uleb128	5
 	.byte	14
-# [314:5]
+# [320:5]
+	.byte	2
+	.uleb128	.Ll110-.Ll109
+	.byte	13
+# [257:9]
 	.byte	2
 	.uleb128	.Ll111-.Ll110
-	.byte	13
-# [245:9]
-	.byte	2
-	.uleb128	.Ll112-.Ll111
 	.byte	5
 	.uleb128	9
 	.byte	3
-	.sleb128	-69
+	.sleb128	-63
 	.byte	1
-# [317:3]
+# [323:3]
 	.byte	2
-	.uleb128	.Ll113-.Ll112
+	.uleb128	.Ll112-.Ll111
 	.byte	5
 	.uleb128	3
-	.byte	84
-# [318:1]
+	.byte	78
+# [324:1]
 	.byte	2
-	.uleb128	.Ll114-.Ll113
+	.uleb128	.Ll113-.Ll112
 	.byte	5
 	.uleb128	1
 	.byte	13
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll115
+	.quad	.Ll114
 	.byte	0
 	.byte	1
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_STATUSTHREADPROC$POINTER$$INT64
-# [328:1]
+# [339:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll116
+	.quad	.Ll115
 	.byte	5
 	.uleb128	1
 	.byte	3
-	.sleb128	327
+	.sleb128	338
 	.byte	1
-# [329:3]
+# [340:3]
 	.byte	2
-	.uleb128	.Ll117-.Ll116
+	.uleb128	.Ll116-.Ll115
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [331:5]
+# [342:5]
+	.byte	2
+	.uleb128	.Ll117-.Ll116
+	.byte	5
+	.uleb128	5
+	.byte	14
+# [343:8]
 	.byte	2
 	.uleb128	.Ll118-.Ll117
 	.byte	5
-	.uleb128	5
-	.byte	14
-# [332:8]
+	.uleb128	8
+	.byte	13
+# [345:5]
 	.byte	2
 	.uleb128	.Ll119-.Ll118
 	.byte	5
-	.uleb128	8
-	.byte	13
-# [334:5]
-	.byte	2
-	.uleb128	.Ll120-.Ll119
-	.byte	5
 	.uleb128	5
 	.byte	14
-# [336:5]
+# [347:5]
+	.byte	2
+	.uleb128	.Ll120-.Ll119
+	.byte	14
+# [348:5]
 	.byte	2
 	.uleb128	.Ll121-.Ll120
-	.byte	14
-# [337:5]
+	.byte	13
+# [349:5]
 	.byte	2
 	.uleb128	.Ll122-.Ll121
 	.byte	13
-# [338:5]
+# [350:5]
 	.byte	2
 	.uleb128	.Ll123-.Ll122
 	.byte	13
-# [339:5]
+# [351:5]
 	.byte	2
 	.uleb128	.Ll124-.Ll123
 	.byte	13
-# [340:5]
+# [353:31]
 	.byte	2
 	.uleb128	.Ll125-.Ll124
-	.byte	13
-# [342:31]
-	.byte	2
-	.uleb128	.Ll126-.Ll125
 	.byte	5
 	.uleb128	31
 	.byte	14
-# [343:21]
+# [354:21]
 	.byte	2
-	.uleb128	.Ll127-.Ll126
+	.uleb128	.Ll126-.Ll125
 	.byte	5
 	.uleb128	21
 	.byte	13
-# [345:37]
+# [356:37]
 	.byte	2
-	.uleb128	.Ll128-.Ll127
+	.uleb128	.Ll127-.Ll126
 	.byte	5
 	.uleb128	37
 	.byte	14
-# [346:9]
+# [357:9]
 	.byte	2
-	.uleb128	.Ll129-.Ll128
+	.uleb128	.Ll128-.Ll127
 	.byte	5
 	.uleb128	9
 	.byte	13
-# [340:5]
+# [351:5]
 	.byte	2
-	.uleb128	.Ll130-.Ll129
+	.uleb128	.Ll129-.Ll128
 	.byte	5
 	.uleb128	5
 	.byte	3
 	.sleb128	-6
 	.byte	1
-# [349:23]
+# [360:24]
+	.byte	2
+	.uleb128	.Ll130-.Ll129
+	.byte	5
+	.uleb128	24
+	.byte	21
+# [361:30]
 	.byte	2
 	.uleb128	.Ll131-.Ll130
 	.byte	5
-	.uleb128	23
-	.byte	21
-# [350:5]
+	.uleb128	30
+	.byte	13
+# [371:35]
 	.byte	2
 	.uleb128	.Ll132-.Ll131
 	.byte	5
-	.uleb128	5
-	.byte	13
-# [352:5]
+	.uleb128	35
+	.byte	22
+# [373:7]
 	.byte	2
 	.uleb128	.Ll133-.Ll132
+	.byte	5
+	.uleb128	7
 	.byte	14
-# [355:41]
+# [374:7]
 	.byte	2
 	.uleb128	.Ll134-.Ll133
+	.byte	13
+# [377:7]
+	.byte	2
+	.uleb128	.Ll135-.Ll134
+	.byte	15
+# [379:22]
+	.byte	2
+	.uleb128	.Ll136-.Ll135
+	.byte	5
+	.uleb128	22
+	.byte	14
+# [381:7]
+	.byte	2
+	.uleb128	.Ll137-.Ll136
+	.byte	5
+	.uleb128	7
+	.byte	14
+# [382:7]
+	.byte	2
+	.uleb128	.Ll138-.Ll137
+	.byte	13
+# [384:14]
+	.byte	2
+	.uleb128	.Ll139-.Ll138
+	.byte	5
+	.uleb128	14
+	.byte	14
+# [385:9]
+	.byte	2
+	.uleb128	.Ll140-.Ll139
+	.byte	5
+	.uleb128	9
+	.byte	13
+# [386:12]
+	.byte	2
+	.uleb128	.Ll141-.Ll140
+	.byte	5
+	.uleb128	12
+	.byte	13
+# [388:35]
+	.byte	2
+	.uleb128	.Ll142-.Ll141
+	.byte	5
+	.uleb128	35
+	.byte	14
+# [389:22]
+	.byte	2
+	.uleb128	.Ll143-.Ll142
+	.byte	5
+	.uleb128	22
+	.byte	13
+# [390:11]
+	.byte	2
+	.uleb128	.Ll144-.Ll143
+	.byte	5
+	.uleb128	11
+	.byte	13
+# [382:7]
+	.byte	2
+	.uleb128	.Ll145-.Ll144
+	.byte	5
+	.uleb128	7
+	.byte	3
+	.sleb128	-8
+	.byte	1
+# [393:7]
+	.byte	2
+	.uleb128	.Ll146-.Ll145
+	.byte	23
+# [394:7]
+	.byte	2
+	.uleb128	.Ll147-.Ll146
+	.byte	13
+# [395:46]
+	.byte	2
+	.uleb128	.Ll148-.Ll147
+	.byte	5
+	.uleb128	46
+	.byte	13
+# [394:7]
+	.byte	2
+	.uleb128	.Ll149-.Ll148
+	.byte	5
+	.uleb128	7
+	.byte	3
+	.sleb128	-1
+	.byte	1
+# [398:5]
+	.byte	2
+	.uleb128	.Ll150-.Ll149
+	.byte	5
+	.uleb128	5
+	.byte	16
+# [406:24]
+	.byte	2
+	.uleb128	.Ll151-.Ll150
+	.byte	5
+	.uleb128	24
+	.byte	20
+# [407:15]
+	.byte	2
+	.uleb128	.Ll152-.Ll151
+	.byte	5
+	.uleb128	15
+	.byte	13
+# [408:32]
+	.byte	2
+	.uleb128	.Ll153-.Ll152
+	.byte	5
+	.uleb128	32
+	.byte	13
+# [409:45]
+	.byte	2
+	.uleb128	.Ll154-.Ll153
+	.byte	5
+	.uleb128	45
+	.byte	13
+# [410:35]
+	.byte	2
+	.uleb128	.Ll155-.Ll154
+	.byte	5
+	.uleb128	35
+	.byte	13
+# [409:5]
+	.byte	2
+	.uleb128	.Ll156-.Ll155
+	.byte	5
+	.uleb128	5
+	.byte	3
+	.sleb128	-1
+	.byte	1
+# [411:23]
+	.byte	2
+	.uleb128	.Ll157-.Ll156
+	.byte	5
+	.uleb128	23
+	.byte	14
+# [412:20]
+	.byte	2
+	.uleb128	.Ll158-.Ll157
+	.byte	5
+	.uleb128	20
+	.byte	13
+# [414:5]
+	.byte	2
+	.uleb128	.Ll159-.Ll158
+	.byte	5
+	.uleb128	5
+	.byte	14
+# [417:41]
+	.byte	2
+	.uleb128	.Ll160-.Ll159
 	.byte	5
 	.uleb128	41
 	.byte	15
-# [352:5]
+# [414:5]
 	.byte	2
-	.uleb128	.Ll135-.Ll134
+	.uleb128	.Ll161-.Ll160
 	.byte	5
 	.uleb128	5
 	.byte	3
 	.sleb128	-3
 	.byte	1
-# [329:9]
+# [418:5]
 	.byte	2
-	.uleb128	.Ll136-.Ll135
+	.uleb128	.Ll162-.Ll161
+	.byte	16
+# [419:48]
+	.byte	2
+	.uleb128	.Ll163-.Ll162
+	.byte	5
+	.uleb128	48
+	.byte	13
+# [420:7]
+	.byte	2
+	.uleb128	.Ll164-.Ll163
+	.byte	5
+	.uleb128	7
+	.byte	13
+# [419:5]
+	.byte	2
+	.uleb128	.Ll165-.Ll164
+	.byte	5
+	.uleb128	5
+	.byte	3
+	.sleb128	-1
+	.byte	1
+# [421:5]
+	.byte	2
+	.uleb128	.Ll166-.Ll165
+	.byte	14
+# [340:9]
+	.byte	2
+	.uleb128	.Ll167-.Ll166
 	.byte	5
 	.uleb128	9
 	.byte	3
-	.sleb128	-23
+	.sleb128	-81
 	.byte	1
-# [357:3]
+# [423:3]
 	.byte	2
-	.uleb128	.Ll137-.Ll136
+	.uleb128	.Ll168-.Ll167
 	.byte	5
 	.uleb128	3
-	.byte	40
-# [358:1]
+	.byte	95
+# [424:1]
 	.byte	2
-	.uleb128	.Ll138-.Ll137
+	.uleb128	.Ll169-.Ll168
 	.byte	5
 	.uleb128	1
 	.byte	13
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll139
+	.quad	.Ll170
 	.byte	0
 	.byte	1
 	.byte	1
 # ###################
-# function: SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
-# [407:1]
+# function: SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
+# [480:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll140
+	.quad	.Ll171
 	.byte	5
 	.uleb128	1
 	.byte	3
-	.sleb128	406
+	.sleb128	479
 	.byte	1
-# [367:1]
+# [433:1]
 	.byte	2
-	.uleb128	.Ll141-.Ll140
+	.uleb128	.Ll172-.Ll171
 	.byte	3
-	.sleb128	-40
+	.sleb128	-47
 	.byte	1
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll142
+	.quad	.Ll173
 	.byte	0
 	.byte	1
 	.byte	1
 # ###################
 # function: SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
-# [367:1]
+# [433:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll143
+	.quad	.Ll174
 	.byte	5
 	.uleb128	1
 	.byte	3
-	.sleb128	366
+	.sleb128	432
 	.byte	1
-# [367:1]
+# [433:1]
 	.byte	2
-	.uleb128	.Ll144-.Ll143
+	.uleb128	.Ll175-.Ll174
 	.byte	1
-# [368:19]
+# [434:19]
 	.byte	2
-	.uleb128	.Ll145-.Ll144
+	.uleb128	.Ll176-.Ll175
 	.byte	5
 	.uleb128	19
 	.byte	13
-# [369:19]
+# [435:19]
 	.byte	2
-	.uleb128	.Ll146-.Ll145
+	.uleb128	.Ll177-.Ll176
 	.byte	13
-# [370:3]
-	.byte	2
-	.uleb128	.Ll147-.Ll146
-	.byte	5
-	.uleb128	3
-	.byte	13
-# [371:3]
-	.byte	2
-	.uleb128	.Ll148-.Ll147
-	.byte	13
-# [372:3]
-	.byte	2
-	.uleb128	.Ll149-.Ll148
-	.byte	13
-# [373:3]
-	.byte	2
-	.uleb128	.Ll150-.Ll149
-	.byte	13
-# [374:3]
-	.byte	2
-	.uleb128	.Ll151-.Ll150
-	.byte	13
-# [376:3]
-	.byte	2
-	.uleb128	.Ll152-.Ll151
-	.byte	14
-# [377:3]
-	.byte	2
-	.uleb128	.Ll153-.Ll152
-	.byte	13
-# [378:16]
-	.byte	2
-	.uleb128	.Ll154-.Ll153
-	.byte	5
-	.uleb128	16
-	.byte	13
-# [383:3]
-	.byte	2
-	.uleb128	.Ll155-.Ll154
-	.byte	5
-	.uleb128	3
-	.byte	17
-# [384:3]
-	.byte	2
-	.uleb128	.Ll156-.Ll155
-	.byte	13
-# [386:28]
-	.byte	2
-	.uleb128	.Ll157-.Ll156
-	.byte	5
-	.uleb128	28
-	.byte	14
-# [388:14]
-	.byte	2
-	.uleb128	.Ll158-.Ll157
-	.byte	5
-	.uleb128	14
-	.byte	14
-# [389:14]
-	.byte	2
-	.uleb128	.Ll159-.Ll158
-	.byte	13
-# [390:14]
-	.byte	2
-	.uleb128	.Ll160-.Ll159
-	.byte	13
-# [391:70]
-	.byte	2
-	.uleb128	.Ll161-.Ll160
-	.byte	5
-	.uleb128	70
-	.byte	13
-# [392:23]
-	.byte	2
-	.uleb128	.Ll162-.Ll161
-	.byte	5
-	.uleb128	23
-	.byte	13
-# [386:3]
-	.byte	2
-	.uleb128	.Ll163-.Ll162
-	.byte	5
-	.uleb128	3
-	.byte	3
-	.sleb128	-6
-	.byte	1
-# [395:3]
-	.byte	2
-	.uleb128	.Ll164-.Ll163
-	.byte	21
-# [396:3]
-	.byte	2
-	.uleb128	.Ll165-.Ll164
-	.byte	13
-# [398:29]
-	.byte	2
-	.uleb128	.Ll166-.Ll165
-	.byte	5
-	.uleb128	29
-	.byte	14
-# [399:16]
-	.byte	2
-	.uleb128	.Ll167-.Ll166
-	.byte	5
-	.uleb128	16
-	.byte	13
-# [396:3]
-	.byte	2
-	.uleb128	.Ll168-.Ll167
-	.byte	5
-	.uleb128	3
-	.byte	3
-	.sleb128	-3
-	.byte	1
-# [402:3]
-	.byte	2
-	.uleb128	.Ll169-.Ll168
-	.byte	18
-# [403:3]
-	.byte	2
-	.uleb128	.Ll170-.Ll169
-	.byte	13
-# [404:3]
-	.byte	2
-	.uleb128	.Ll171-.Ll170
-	.byte	13
-# [405:3]
-	.byte	2
-	.uleb128	.Ll172-.Ll171
-	.byte	13
-# [406:3]
-	.byte	2
-	.uleb128	.Ll173-.Ll172
-	.byte	13
-# [367:1]
-	.byte	2
-	.uleb128	.Ll174-.Ll173
-	.byte	5
-	.uleb128	1
-	.byte	3
-	.sleb128	-39
-	.byte	1
-# [407:1]
-	.byte	2
-	.uleb128	.Ll175-.Ll174
-	.byte	52
-	.byte	0
-	.uleb128	9
-	.byte	2
-	.quad	.Ll176
-	.byte	0
-	.byte	1
-	.byte	1
-# ###################
-# function: SOMA_HYPERVISOR_$$_HYPERVISORRUN
-# [412:1]
-	.byte	0
-	.uleb128	9
-	.byte	2
-	.quad	.Ll177
-	.byte	5
-	.uleb128	1
-	.byte	3
-	.sleb128	411
-	.byte	1
-# [413:3]
+# [436:3]
 	.byte	2
 	.uleb128	.Ll178-.Ll177
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [414:3]
+# [437:3]
 	.byte	2
 	.uleb128	.Ll179-.Ll178
 	.byte	13
-# [416:28]
+# [438:3]
 	.byte	2
 	.uleb128	.Ll180-.Ll179
-	.byte	5
-	.uleb128	28
-	.byte	14
-# [418:14]
+	.byte	13
+# [439:3]
 	.byte	2
 	.uleb128	.Ll181-.Ll180
-	.byte	5
-	.uleb128	14
-	.byte	14
-# [419:71]
+	.byte	13
+# [440:3]
 	.byte	2
 	.uleb128	.Ll182-.Ll181
-	.byte	5
-	.uleb128	71
 	.byte	13
-# [420:17]
+# [442:3]
 	.byte	2
 	.uleb128	.Ll183-.Ll182
-	.byte	5
-	.uleb128	17
-	.byte	13
-# [421:7]
+	.byte	14
+# [443:3]
 	.byte	2
 	.uleb128	.Ll184-.Ll183
-	.byte	5
-	.uleb128	7
 	.byte	13
-# [423:7]
+# [444:16]
 	.byte	2
 	.uleb128	.Ll185-.Ll184
-	.byte	14
-# [416:3]
+	.byte	5
+	.uleb128	16
+	.byte	13
+# [449:3]
 	.byte	2
 	.uleb128	.Ll186-.Ll185
 	.byte	5
 	.uleb128	3
-	.byte	3
-	.sleb128	-7
-	.byte	1
-# [426:33]
+	.byte	17
+# [454:3]
 	.byte	2
 	.uleb128	.Ll187-.Ll186
-	.byte	5
-	.uleb128	33
-	.byte	22
-# [427:21]
+	.byte	17
+# [456:16]
 	.byte	2
 	.uleb128	.Ll188-.Ll187
 	.byte	5
-	.uleb128	21
-	.byte	13
-# [428:5]
+	.uleb128	16
+	.byte	14
+# [457:50]
 	.byte	2
 	.uleb128	.Ll189-.Ll188
 	.byte	5
-	.uleb128	5
+	.uleb128	50
 	.byte	13
-# [430:3]
+# [459:28]
 	.byte	2
 	.uleb128	.Ll190-.Ll189
 	.byte	5
-	.uleb128	3
+	.uleb128	28
 	.byte	14
-# [431:3]
+# [461:14]
 	.byte	2
 	.uleb128	.Ll191-.Ll190
-	.byte	13
-# [433:3]
+	.byte	5
+	.uleb128	14
+	.byte	14
+# [462:14]
 	.byte	2
 	.uleb128	.Ll192-.Ll191
-	.byte	14
-# [434:1]
+	.byte	13
+# [463:14]
 	.byte	2
 	.uleb128	.Ll193-.Ll192
-	.byte	5
-	.uleb128	1
 	.byte	13
-	.byte	0
-	.uleb128	9
+# [464:70]
 	.byte	2
-	.quad	.Ll194
-	.byte	0
-	.byte	1
-	.byte	1
-# ###################
-# function: SOMA_HYPERVISOR_$$_HYPERVISORSTOP
-# [439:1]
-	.byte	0
-	.uleb128	9
-	.byte	2
-	.quad	.Ll195
+	.uleb128	.Ll194-.Ll193
 	.byte	5
-	.uleb128	1
-	.byte	3
-	.sleb128	438
-	.byte	1
-# [440:3]
+	.uleb128	70
+	.byte	13
+# [465:23]
+	.byte	2
+	.uleb128	.Ll195-.Ll194
+	.byte	5
+	.uleb128	23
+	.byte	13
+# [459:3]
 	.byte	2
 	.uleb128	.Ll196-.Ll195
-	.byte	5
-	.uleb128	3
-	.byte	13
-# [442:21]
-	.byte	2
-	.uleb128	.Ll197-.Ll196
-	.byte	5
-	.uleb128	21
-	.byte	14
-# [444:39]
-	.byte	2
-	.uleb128	.Ll198-.Ll197
-	.byte	5
-	.uleb128	39
-	.byte	14
-# [445:31]
-	.byte	2
-	.uleb128	.Ll199-.Ll198
-	.byte	5
-	.uleb128	31
-	.byte	13
-# [448:28]
-	.byte	2
-	.uleb128	.Ll200-.Ll199
-	.byte	5
-	.uleb128	28
-	.byte	15
-# [450:17]
-	.byte	2
-	.uleb128	.Ll201-.Ll200
-	.byte	5
-	.uleb128	17
-	.byte	14
-# [439:1]
-	.byte	2
-	.uleb128	.Ll202-.Ll201
-	.byte	5
-	.uleb128	1
-	.byte	3
-	.sleb128	-11
-	.byte	1
-# [450:16]
-	.byte	2
-	.uleb128	.Ll203-.Ll202
-	.byte	5
-	.uleb128	16
-	.byte	23
-# [452:36]
-	.byte	2
-	.uleb128	.Ll204-.Ll203
-	.byte	5
-	.uleb128	36
-	.byte	14
-# [453:28]
-	.byte	2
-	.uleb128	.Ll205-.Ll204
-	.byte	5
-	.uleb128	28
-	.byte	13
-# [454:16]
-	.byte	2
-	.uleb128	.Ll206-.Ll205
-	.byte	5
-	.uleb128	16
-	.byte	13
-# [448:3]
-	.byte	2
-	.uleb128	.Ll207-.Ll206
 	.byte	5
 	.uleb128	3
 	.byte	3
 	.sleb128	-6
 	.byte	1
-# [458:28]
+# [468:3]
+	.byte	2
+	.uleb128	.Ll197-.Ll196
+	.byte	21
+# [469:3]
+	.byte	2
+	.uleb128	.Ll198-.Ll197
+	.byte	13
+# [471:29]
+	.byte	2
+	.uleb128	.Ll199-.Ll198
+	.byte	5
+	.uleb128	29
+	.byte	14
+# [472:16]
+	.byte	2
+	.uleb128	.Ll200-.Ll199
+	.byte	5
+	.uleb128	16
+	.byte	13
+# [469:3]
+	.byte	2
+	.uleb128	.Ll201-.Ll200
+	.byte	5
+	.uleb128	3
+	.byte	3
+	.sleb128	-3
+	.byte	1
+# [475:3]
+	.byte	2
+	.uleb128	.Ll202-.Ll201
+	.byte	18
+# [476:3]
+	.byte	2
+	.uleb128	.Ll203-.Ll202
+	.byte	13
+# [477:3]
+	.byte	2
+	.uleb128	.Ll204-.Ll203
+	.byte	13
+# [478:3]
+	.byte	2
+	.uleb128	.Ll205-.Ll204
+	.byte	13
+# [479:3]
+	.byte	2
+	.uleb128	.Ll206-.Ll205
+	.byte	13
+# [433:1]
+	.byte	2
+	.uleb128	.Ll207-.Ll206
+	.byte	5
+	.uleb128	1
+	.byte	3
+	.sleb128	-46
+	.byte	1
+# [480:1]
 	.byte	2
 	.uleb128	.Ll208-.Ll207
-	.byte	5
-	.uleb128	28
-	.byte	22
-# [459:17]
+	.byte	59
+	.byte	0
+	.uleb128	9
 	.byte	2
-	.uleb128	.Ll209-.Ll208
-	.byte	5
-	.uleb128	17
-	.byte	13
-# [460:24]
+	.quad	.Ll209
+	.byte	0
+	.byte	1
+	.byte	1
+# ###################
+# function: SOMA_HYPERVISOR_$$_HYPERVISORRUN
+# [485:1]
+	.byte	0
+	.uleb128	9
 	.byte	2
-	.uleb128	.Ll210-.Ll209
+	.quad	.Ll210
 	.byte	5
-	.uleb128	24
-	.byte	13
-# [458:3]
+	.uleb128	1
+	.byte	3
+	.sleb128	484
+	.byte	1
+# [486:3]
 	.byte	2
 	.uleb128	.Ll211-.Ll210
 	.byte	5
 	.uleb128	3
-	.byte	3
-	.sleb128	-2
-	.byte	1
-# [462:3]
+	.byte	13
+# [487:3]
 	.byte	2
 	.uleb128	.Ll212-.Ll211
-	.byte	16
-# [463:3]
+	.byte	13
+# [489:28]
 	.byte	2
 	.uleb128	.Ll213-.Ll212
-	.byte	13
-# [464:3]
+	.byte	5
+	.uleb128	28
+	.byte	14
+# [491:14]
 	.byte	2
 	.uleb128	.Ll214-.Ll213
-	.byte	13
-# [465:1]
+	.byte	5
+	.uleb128	14
+	.byte	14
+# [492:71]
 	.byte	2
 	.uleb128	.Ll215-.Ll214
+	.byte	5
+	.uleb128	71
+	.byte	13
+# [493:17]
+	.byte	2
+	.uleb128	.Ll216-.Ll215
+	.byte	5
+	.uleb128	17
+	.byte	13
+# [494:7]
+	.byte	2
+	.uleb128	.Ll217-.Ll216
+	.byte	5
+	.uleb128	7
+	.byte	13
+# [496:7]
+	.byte	2
+	.uleb128	.Ll218-.Ll217
+	.byte	14
+# [489:3]
+	.byte	2
+	.uleb128	.Ll219-.Ll218
+	.byte	5
+	.uleb128	3
+	.byte	3
+	.sleb128	-7
+	.byte	1
+# [499:33]
+	.byte	2
+	.uleb128	.Ll220-.Ll219
+	.byte	5
+	.uleb128	33
+	.byte	22
+# [500:21]
+	.byte	2
+	.uleb128	.Ll221-.Ll220
+	.byte	5
+	.uleb128	21
+	.byte	13
+# [501:5]
+	.byte	2
+	.uleb128	.Ll222-.Ll221
+	.byte	5
+	.uleb128	5
+	.byte	13
+# [503:3]
+	.byte	2
+	.uleb128	.Ll223-.Ll222
+	.byte	5
+	.uleb128	3
+	.byte	14
+# [504:3]
+	.byte	2
+	.uleb128	.Ll224-.Ll223
+	.byte	13
+# [506:3]
+	.byte	2
+	.uleb128	.Ll225-.Ll224
+	.byte	14
+# [507:1]
+	.byte	2
+	.uleb128	.Ll226-.Ll225
 	.byte	5
 	.uleb128	1
 	.byte	13
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll216
+	.quad	.Ll227
+	.byte	0
+	.byte	1
+	.byte	1
+# ###################
+# function: SOMA_HYPERVISOR_$$_HYPERVISORSTOP
+# [512:1]
+	.byte	0
+	.uleb128	9
+	.byte	2
+	.quad	.Ll228
+	.byte	5
+	.uleb128	1
+	.byte	3
+	.sleb128	511
+	.byte	1
+# [513:3]
+	.byte	2
+	.uleb128	.Ll229-.Ll228
+	.byte	5
+	.uleb128	3
+	.byte	13
+# [515:21]
+	.byte	2
+	.uleb128	.Ll230-.Ll229
+	.byte	5
+	.uleb128	21
+	.byte	14
+# [517:39]
+	.byte	2
+	.uleb128	.Ll231-.Ll230
+	.byte	5
+	.uleb128	39
+	.byte	14
+# [518:31]
+	.byte	2
+	.uleb128	.Ll232-.Ll231
+	.byte	5
+	.uleb128	31
+	.byte	13
+# [521:28]
+	.byte	2
+	.uleb128	.Ll233-.Ll232
+	.byte	5
+	.uleb128	28
+	.byte	15
+# [523:17]
+	.byte	2
+	.uleb128	.Ll234-.Ll233
+	.byte	5
+	.uleb128	17
+	.byte	14
+# [512:1]
+	.byte	2
+	.uleb128	.Ll235-.Ll234
+	.byte	5
+	.uleb128	1
+	.byte	3
+	.sleb128	-11
+	.byte	1
+# [523:16]
+	.byte	2
+	.uleb128	.Ll236-.Ll235
+	.byte	5
+	.uleb128	16
+	.byte	23
+# [525:36]
+	.byte	2
+	.uleb128	.Ll237-.Ll236
+	.byte	5
+	.uleb128	36
+	.byte	14
+# [526:28]
+	.byte	2
+	.uleb128	.Ll238-.Ll237
+	.byte	5
+	.uleb128	28
+	.byte	13
+# [527:16]
+	.byte	2
+	.uleb128	.Ll239-.Ll238
+	.byte	5
+	.uleb128	16
+	.byte	13
+# [521:3]
+	.byte	2
+	.uleb128	.Ll240-.Ll239
+	.byte	5
+	.uleb128	3
+	.byte	3
+	.sleb128	-6
+	.byte	1
+# [531:28]
+	.byte	2
+	.uleb128	.Ll241-.Ll240
+	.byte	5
+	.uleb128	28
+	.byte	22
+# [532:17]
+	.byte	2
+	.uleb128	.Ll242-.Ll241
+	.byte	5
+	.uleb128	17
+	.byte	13
+# [533:24]
+	.byte	2
+	.uleb128	.Ll243-.Ll242
+	.byte	5
+	.uleb128	24
+	.byte	13
+# [531:3]
+	.byte	2
+	.uleb128	.Ll244-.Ll243
+	.byte	5
+	.uleb128	3
+	.byte	3
+	.sleb128	-2
+	.byte	1
+# [535:19]
+	.byte	2
+	.uleb128	.Ll245-.Ll244
+	.byte	5
+	.uleb128	19
+	.byte	16
+# [536:5]
+	.byte	2
+	.uleb128	.Ll246-.Ll245
+	.byte	5
+	.uleb128	5
+	.byte	13
+# [538:3]
+	.byte	2
+	.uleb128	.Ll247-.Ll246
+	.byte	5
+	.uleb128	3
+	.byte	14
+# [539:3]
+	.byte	2
+	.uleb128	.Ll248-.Ll247
+	.byte	13
+# [540:3]
+	.byte	2
+	.uleb128	.Ll249-.Ll248
+	.byte	13
+# [541:1]
+	.byte	2
+	.uleb128	.Ll250-.Ll249
+	.byte	5
+	.uleb128	1
+	.byte	13
+	.byte	0
+	.uleb128	9
+	.byte	2
+	.quad	.Ll251
 	.byte	0
 	.byte	1
 	.byte	1
 # ###################
 # function: INIT$_$SOMA_HYPERVISOR
 # function: SOMA_HYPERVISOR_$$_init$
-# [467:1]
+# [543:1]
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll217
+	.quad	.Ll252
 	.byte	5
 	.uleb128	1
 	.byte	3
-	.sleb128	466
+	.sleb128	542
 	.byte	1
-# [467:1]
+# [543:1]
 	.byte	2
-	.uleb128	.Ll218-.Ll217
+	.uleb128	.Ll253-.Ll252
 	.byte	1
-# [468:3]
+# [544:3]
 	.byte	2
-	.uleb128	.Ll219-.Ll218
+	.uleb128	.Ll254-.Ll253
 	.byte	5
 	.uleb128	3
 	.byte	13
-# [469:3]
+# [545:3]
 	.byte	2
-	.uleb128	.Ll220-.Ll219
+	.uleb128	.Ll255-.Ll254
 	.byte	13
-# [470:3]
+# [546:3]
 	.byte	2
-	.uleb128	.Ll221-.Ll220
+	.uleb128	.Ll256-.Ll255
 	.byte	13
-# [471:3]
+# [547:3]
 	.byte	2
-	.uleb128	.Ll222-.Ll221
+	.uleb128	.Ll257-.Ll256
 	.byte	13
-# [472:3]
+# [548:3]
 	.byte	2
-	.uleb128	.Ll223-.Ll222
+	.uleb128	.Ll258-.Ll257
 	.byte	13
-# [473:3]
+# [549:3]
 	.byte	2
-	.uleb128	.Ll224-.Ll223
+	.uleb128	.Ll259-.Ll258
 	.byte	13
-# [474:3]
+# [550:3]
 	.byte	2
-	.uleb128	.Ll225-.Ll224
+	.uleb128	.Ll260-.Ll259
 	.byte	13
-# [475:3]
+# [551:3]
 	.byte	2
-	.uleb128	.Ll226-.Ll225
+	.uleb128	.Ll261-.Ll260
 	.byte	13
-# [476:3]
+# [552:3]
 	.byte	2
-	.uleb128	.Ll227-.Ll226
+	.uleb128	.Ll262-.Ll261
 	.byte	13
-# [477:3]
+# [553:3]
 	.byte	2
-	.uleb128	.Ll228-.Ll227
+	.uleb128	.Ll263-.Ll262
 	.byte	13
-# [479:1]
+# [555:1]
 	.byte	2
-	.uleb128	.Ll229-.Ll228
+	.uleb128	.Ll264-.Ll263
 	.byte	5
 	.uleb128	1
 	.byte	14
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll230
+	.quad	.Ll265
 	.byte	0
 	.byte	1
 	.byte	1
@@ -6213,7 +6827,7 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.byte	0
 	.uleb128	9
 	.byte	2
-	.quad	.Ll231
+	.quad	.Ll266
 	.byte	0
 	.byte	1
 	.byte	1
@@ -6232,8 +6846,8 @@ RTTI_$SOMA_HYPERVISOR_$$_TSOMASHMEM$indirect:
 	.long	0
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
 	.quad	.Lt1-SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
-	.quad	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
-	.quad	.Lt2-SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000024
+	.quad	SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
+	.quad	.Lt2-SOMA_HYPERVISOR$_$HYPERVISORINIT$LONGINT_$$_fin$00000022
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORRUN
 	.quad	.Lt3-SOMA_HYPERVISOR_$$_HYPERVISORRUN
 	.quad	SOMA_HYPERVISOR_$$_HYPERVISORSTOP

@@ -104,11 +104,10 @@ end;
 
 // Fraction of adjacent pairs in istack[0..count-1] that are in
 // non-descending order. count fully-sorted pairs / (count-1) total pairs.
-// Deliberately partial-credit (not a pass/fail gate) so mutation has a
-// gradient to climb rather than a fitness cliff -- a genome that gets
-// 6 of 7 pairs right scores meaningfully higher than one that gets 2 of 7,
-// which matters a great deal for tournament selection to have any signal
-// to work with in early generations of essentially-random genomes.
+// NOTE: on its own this is gameable -- a genome that clobbers the whole
+// slice to one constant value scores a perfect 1.0 without sorting
+// anything. Must always be combined with Prim_IsPermutation (see below)
+// so "sorted" only counts when it's a rearrangement of the real input.
 function Prim_ArraySorted(const state: TVMState; count: Integer): Double;
 var
   i, correct_pairs, total_pairs: Integer;
@@ -124,6 +123,35 @@ begin
     if state.istack[i] <= state.istack[i + 1] then
       Inc(correct_pairs);
   Result := correct_pairs / total_pairs;
+end;
+
+// Guards against the exploit above: checks that istack[0..count-1] is
+// still a permutation of the original seeded input -- same multiset of
+// values, not just "some monotonic sequence of whatever's there now".
+// O(n^2) compare-by-count, fine at count=8; revisit if input_count grows
+// much larger.
+function Prim_IsPermutation(const state: TVMState; count: Integer;
+                             const original: array of Int64): Double;
+var
+  i, j, matched: Integer;
+  used: array[0..255] of Boolean;
+begin
+  if (count < 1) or (Length(original) < count) then
+  begin
+    Result := 0.0;
+    Exit;
+  end;
+  FillChar(used, SizeOf(used), False);
+  matched := 0;
+  for i := 0 to count - 1 do
+    for j := 0 to count - 1 do
+      if (not used[j]) and (state.istack[i] = original[j]) then
+      begin
+        used[j] := True;
+        Inc(matched);
+        Break;
+      end;
+  Result := matched / count;
 end;
 
 // -- JSON loading --------------------------------------------------------
@@ -210,7 +238,14 @@ begin
     rng := rng xor (rng shl 17);
     state.istack[i] := target.input_min + Int64(rng mod span);
   end;
-  state.isp := target.input_count - 1;
+  // isp is a COUNT of valid elements (next-free-slot index), confirmed
+  // against soma_core.pas: @DUP pushes at [isp] then increments, so the
+  // top element is istack[isp-1] and all top-relative ops (SWAP/LT/etc.)
+  // address relative to isp. For input_count seeded elements at
+  // istack[0..input_count-1], isp must equal input_count so the whole
+  // seeded range is visible to top-relative ops -- input_count-1 would
+  // silently exclude istack[input_count-1] from ever being touched.
+  state.isp := target.input_count;
 end;
 
 // -- Evaluation --------------------------------------------------------
@@ -236,6 +271,8 @@ begin
       m := Prim_Survival(state)
     else if target.criteria[i].metric = 'array_sorted' then
       m := Prim_ArraySorted(state, target.input_count)
+    else if target.criteria[i].metric = 'is_permutation' then
+      m := Prim_IsPermutation(state, target.input_count, original_input)
     else
       m := 0.0;  // unknown metric name: contributes nothing, doesn't crash
 
@@ -254,10 +291,11 @@ begin
   else
     Result.score := 0.0;
 
-  // Gate: only a genome that halted cleanly (not fault/bounds/cycle-limit)
-  // AND scored above a low floor counts as "passed" -- mirrors the
-  // survival gate criterion described in plan.md's starter fitness list.
+  // Gate: only a genome that halted cleanly (not fault/bounds/cycle-limit),
+  // is an actual permutation of the input (not a constant-fill cheat),
+  // AND scored above a low floor counts as "passed".
   Result.passed := ((state.halt_reason = HR_HALT) or (state.halt_reason = HR_YIELD))
+                    and (Prim_IsPermutation(state, target.input_count, original_input) > 0.99)
                     and (Result.score > 0.1);
 end;
 

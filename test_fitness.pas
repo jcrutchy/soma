@@ -40,7 +40,7 @@ begin
     state.istack[i] := i;
   state.halt_reason := HR_HALT;
   state.ip := 100;
-  state.isp := target.input_count - 1;
+  state.isp := target.input_count;  // matches the SeedFitnessInput fix -- isp is a count
 
   result := EvaluateFitnessTarget(state, target, []);
   Check('perfectly sorted array_sorted metric = 1.0', result.metrics[0] = 1.0);

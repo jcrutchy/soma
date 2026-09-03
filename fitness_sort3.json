@@ -1,8 +1,8 @@
 {
-  "name": "sort_integers",
+  "name": "sort_integers_3",
   "version": 1,
   "setup": {
-    "input_count": 8,
+    "input_count": 3,
     "input_min": -50,
     "input_max": 50
   },

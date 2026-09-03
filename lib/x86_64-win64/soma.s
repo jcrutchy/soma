@@ -236,8 +236,8 @@ main:
 	call	fpc_writeln_end
 	call	fpc_iocheck
 .Ll22:
-# [63] HypervisorInit(1);  // start with 4 colonies
-	movl	$1,%ecx
+# [63] HypervisorInit(4);  // 4 colonies
+	movl	$4,%ecx
 	call	SOMA_HYPERVISOR_$$_HYPERVISORINIT$LONGINT
 .Ll23:
 # [64] HypervisorRun;      // blocks until Enter pressed
@@ -542,7 +542,6 @@ _$SOMA$_Ld13:
 # Symbol SOMA_CORE
 # Symbol SOMA_HYPERVISOR
 # Symbol SOMA_MUTATE
-# Symbol SOMA_FITNESS
 # Symbol SOMA
 # Symbol main
 # Symbol STATESIZE
@@ -612,14 +611,14 @@ _$SOMA$_Ld13:
 # Defs - End unit FPINTRES has index 7
 # Defs - Begin unit SOMA_TYPES has index 8
 # Defs - End unit SOMA_TYPES has index 8
-# Defs - Begin unit SYSCONST has index 15
-# Defs - End unit SYSCONST has index 15
-# Defs - Begin unit WINDIRS has index 16
-# Defs - End unit WINDIRS has index 16
-# Defs - Begin unit SYSUTILS has index 14
-# Defs - End unit SYSUTILS has index 14
-# Defs - Begin unit MATH has index 13
-# Defs - End unit MATH has index 13
+# Defs - Begin unit SYSCONST has index 14
+# Defs - End unit SYSCONST has index 14
+# Defs - Begin unit WINDIRS has index 15
+# Defs - End unit WINDIRS has index 15
+# Defs - Begin unit SYSUTILS has index 13
+# Defs - End unit SYSUTILS has index 13
+# Defs - Begin unit MATH has index 12
+# Defs - End unit MATH has index 12
 # Defs - Begin unit SOMA_CORE has index 9
 # Defs - End unit SOMA_CORE has index 9
 # Defs - Begin unit SOMA_MUTATE has index 11
@@ -646,8 +645,8 @@ _$SOMA$_Ld13:
 # Defs - End unit JSONREADER has index 27
 # Defs - Begin unit JSONPARSER has index 18
 # Defs - End unit JSONPARSER has index 18
-# Defs - Begin unit SOMA_FITNESS has index 12
-# Defs - End unit SOMA_FITNESS has index 12
+# Defs - Begin unit SOMA_FITNESS has index 16
+# Defs - End unit SOMA_FITNESS has index 16
 # Defs - Begin unit SOMA_HYPERVISOR has index 10
 # Defs - End unit SOMA_HYPERVISOR has index 10
 # Defs - Begin unit SYSINIT has index 28

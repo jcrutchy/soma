@@ -60,6 +60,15 @@ var
   StatusThreadID:   TThreadID;
   GlobalRNG:        UInt64;
   FitnessTarget:    TFitnessTarget;  // loaded once in InitHypervisor, read-only after that
+  DiagState:        PVMState;        // dedicated aligned VM, used only by StatusThreadProc
+  DiagRawAlloc:      Pointer;
+  DiagRNG:          UInt64;
+  LastBestSeen:     Double = -1.0;   // stagnation tracking, StatusThreadProc only
+  StagnantTicks:    Integer = 0;
+
+const
+  STAGNATION_TICK_THRESHOLD = 6;     // ~3s of no Best improvement at 500ms/tick
+  INJECTION_FRACTION        = 0.25;  // fraction of population replaced with fresh random genomes
 
 procedure HypervisorInit(colony_count: Integer);
 procedure HypervisorRun;
@@ -235,6 +244,9 @@ var
   worst_idx:  Integer;
   local_rng:  UInt64;
   offspring:  TGenome;
+  seeded_input: array[0..255] of Int64;
+  fit_result: TFitnessResult;
+  dbg_i:      Integer;
 begin
   col   := param;
   state := col^.state;
@@ -280,27 +292,21 @@ begin
     // already on the stack when execution starts.
     SeedFitnessInput(state^, FitnessTarget, local_rng);
 
+    // Snapshot the seeded input BEFORE Execute runs -- EvaluateFitnessTarget
+    // needs this to verify the genome actually permuted the real input
+    // rather than clobbering it to a constant (see is_permutation primitive
+    // in soma_fitness.pas). Without this snapshot "sorted" is gameable.
+    for dbg_i := 0 to FitnessTarget.input_count - 1 do
+      seeded_input[dbg_i] := state^.istack[dbg_i];
+
     t0 := ReadTSC;
     Execute(state^);
     t1 := ReadTSC;
 
     col^.exec_cycles := t1 - t0;
-    col^.fitness      := EvaluateFitness(state);
+    fit_result        := EvaluateFitnessTarget(state^, FitnessTarget, seeded_input);
+    col^.fitness      := fit_result.score;
     col^.generation    := Generation;
-
-    // TEMP DEBUG -- remove once fitness pipeline is verified.
-    if Generation < 5 then
-    begin
-      EnterCriticalSection(HyperCS);
-      Write('  [dbg gen=', Generation, '] input_count=', FitnessTarget.input_count,
-            ' istack[0..3]=', state^.istack[0], ',', state^.istack[1], ',',
-            state^.istack[2], ',', state^.istack[3],
-            ' isp=', state^.isp, ' ip=', state^.ip,
-            ' halt_reason=', Ord(state^.halt_reason),
-            ' fitness=', col^.fitness:0:4);
-      WriteLn;
-      LeaveCriticalSection(HyperCS);
-    end;
 
     // --- replace worst-in-population if offspring is fitter ---
     EnterCriticalSection(HyperCS);
@@ -325,6 +331,11 @@ function StatusThreadProc(param: Pointer): PtrInt;
 var
   i: Integer;
   sum: Double;
+  best_genome: TGenome;
+  diag_seeded: array[0..255] of Int64;
+  diag_result: TFitnessResult;
+  j: Integer;
+  injected: Integer;
 begin
   while Running do
   begin
@@ -346,13 +357,68 @@ begin
         BestGenomeIdx := i;
       end;
     end;
-    AvgFitness := sum / POPULATION_SIZE;
+    AvgFitness  := sum / POPULATION_SIZE;
+    best_genome := Population[BestGenomeIdx];  // small copy while still locked
+
+    // Stagnation detection + diversity injection: if Best hasn't improved
+    // for STAGNATION_TICK_THRESHOLD consecutive ticks, replace a fraction
+    // of the population (excluding the current best) with fresh random
+    // genomes. Elitist replace-worst selection means the population can
+    // and does homogenize around a single strong-but-incomplete solution
+    // over enough generations -- this forces fresh genetic material back
+    // in periodically so mutation has something new to work with, rather
+    // than just reshuffling what's already there.
+    if BestFitness > LastBestSeen + 1e-6 then
+    begin
+      LastBestSeen  := BestFitness;
+      StagnantTicks := 0;
+    end
+    else
+      Inc(StagnantTicks);
+
+    if StagnantTicks >= STAGNATION_TICK_THRESHOLD then
+    begin
+      injected := 0;
+      for i := 0 to POPULATION_SIZE - 1 do
+      begin
+        if i = BestGenomeIdx then Continue;
+        XorShift64(GlobalRNG);
+        if (GlobalRNG mod 1000) < UInt64(Trunc(INJECTION_FRACTION * 1000)) then
+        begin
+          RandomGenome(Population[i], GlobalRNG);
+          PopFitness[i] := 0.0;  // guarantees it's a replace-worst candidate again
+          Inc(injected);
+        end;
+      end;
+      StagnantTicks := 0;
+      WriteLn('  [stagnation] no improvement for ', STAGNATION_TICK_THRESHOLD,
+              ' ticks -- injected ', injected, ' fresh genomes');
+    end;
+
     LeaveCriticalSection(HyperCS);
+
+    // One-shot diagnostic re-run of the current best genome on fresh
+    // random input, using a dedicated aligned VM state so it never
+    // touches the colonies' live state. Cheap at 500ms intervals -- tells
+    // us exactly which criterion (is_permutation / array_sorted /
+    // survival) is capping the score, instead of guessing from the
+    // aggregate number alone.
+    FillChar(DiagState^, SizeOf(TVMState), 0);
+    DiagState^.genome := best_genome;
+    SeedFitnessInput(DiagState^, FitnessTarget, DiagRNG);
+    for j := 0 to FitnessTarget.input_count - 1 do
+      diag_seeded[j] := DiagState^.istack[j];
+    Execute(DiagState^);
+    diag_result := EvaluateFitnessTarget(DiagState^, FitnessTarget, diag_seeded);
 
     WriteLn('Gen: ', Generation,
             '  Best: ', BestFitness:6:4,
             '  Avg: ',  AvgFitness:6:4,
             '  (genome #', BestGenomeIdx, ')');
+    Write('    breakdown -- ');
+    for j := 0 to High(FitnessTarget.criteria) do
+      Write(FitnessTarget.criteria[j].metric, '=', diag_result.metrics[j]:0:4, ' ');
+    WriteLn('halt_reason=', Ord(DiagState^.halt_reason), ' passed=', diag_result.passed);
   end;
   Result := 0;
 end;
@@ -380,8 +446,15 @@ begin
   // Loaded once here, read-only for the life of the run. Change what
   // genomes are scored against by editing fitness_sort.json and
   // restarting -- no recompile needed.
-  FitnessTarget := LoadFitnessTarget('fitness_sort.json');
+  FitnessTarget := LoadFitnessTarget('fitness_sort3.json');  // TEMP: 3-element target,
+  // reachable with only top-of-stack ops (no LOAD/STORE addressing exists
+  // yet -- see soma_core.pas @LOAD/@STORE, deliberate no-op stubs). Switch
+  // back to 'fitness_sort.json' (8-element) once this is solved and/or
+  // indexed memory ops are implemented.
   WriteLn('  Fitness target: ', FitnessTarget.name, ' v', FitnessTarget.version);
+
+  DiagState := AllocAligned(SizeOf(TVMState), DiagRawAlloc);
+  DiagRNG   := $D1AC7100 + UInt64(GetTickCount64);
 
   for i := 0 to ColonyCount-1 do
   begin
@@ -458,6 +531,9 @@ begin
   for i := 0 to ColonyCount-1 do
     if Colonies[i].raw_alloc <> nil then
       FreeMem(Colonies[i].raw_alloc);
+
+  if DiagRawAlloc <> nil then
+    FreeMem(DiagRawAlloc);
 
   CloseSharedMemory;
   DoneCriticalSection(HyperCS);

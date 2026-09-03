@@ -26,11 +26,15 @@ This supersedes the earlier v0.1–v0.4 Rust specification. Core philosophy carr
 ## 2. What Actually Exists Right Now
 
 - A complete, compiling, running **Layer 0 virtual machine** (`soma_core.pas`) — a stack-based interpreter written in inline x86-64 assembly (Intel syntax), cross-platform between Win64 and Linux via conditional compilation.
-- A working **hypervisor** (`soma_hypervisor.pas`) that spins up multiple colony threads, each running an independent `TVMState`, executing random genomes in a tight loop, with live status reporting and clean shutdown.
+- A working **hypervisor** (`soma_hypervisor.pas`) that spins up multiple colony threads, each running an independent `TVMState`, executing and evolving genomes in a tight loop, with live status reporting and clean shutdown.
 - Verified throughput in the hundreds of thousands of generations per second across 4 colony threads on commodity hardware, with zero crashes or corruption across millions of executions.
 - All core type definitions (`soma_types.pas`) with compile-time and runtime assertions guaranteeing struct layout correctness — critical since the asm layer depends on exact byte offsets.
+- **Mutation operators** (`soma_mutate.pas`) — point-opcode, point-immediate, NOP-block, and copy-block, each independently rate-gated (see §6 for the fixed defaults and a note on a real concurrency bug found and fixed in copy-block's population read).
+- An **evolution loop** (`soma_evolution.pas`, tested in `test_evolution.pas`) driving tournament selection and steady-state replace-the-worst population update.
+- A **JSON-driven fitness pipeline** (`soma_fitness.pas`) — fitness targets are data files naming a weighted pipeline of measurement primitives, loaded once at startup and requiring no recompilation to change what a genome is scored against (see §7 — this section was rewritten wholesale; it previously described a still-unbuilt DLL/stdcall plugin design that has been superseded and removed).
+- A **viewer application** (`soma_viewer`) scaffolded as a separate Lazarus GUI project (icon, resources, main form) — not yet functional; no GLOG reading or shared-memory polling implemented.
 
-What does **not** yet exist: fitness evaluation (currently a stub returning 0.0), mutation operators, the GLOG binary logger, the live viewer, and the compiler/codegen toolchain. These are the next layers to build.
+What does **not** yet exist: the GLOG binary logger, live viewer functionality, and the compiler/codegen toolchain. These remain the next layers to build.
 
 ---
 
@@ -159,7 +163,7 @@ Xorshift64, implemented directly in asm for `RAND` (raw `Int64`) and `FRAND` (sc
 
 - Owns the population array (`TGenome` array) and the array of colony thread contexts.
 - Spins up N worker threads via `BeginThread`, one `TVMState` per thread.
-- Each colony thread loops: copy a genome from the population, reset VM state, `Execute`, evaluate fitness (currently stubbed), record results, repeat.
+- Each colony thread loops: select a parent via tournament selection, mutate, reset VM state, seed fitness-target input, `Execute`, evaluate fitness via the JSON pipeline, replace the population's worst if the offspring beats it, repeat.
 - A separate status thread prints live generation/fitness stats and updates a shared memory block at ~2 Hz, without blocking the colony threads.
 - Main thread blocks on `Readln`; pressing Enter signals all threads to wind down cleanly.
 
@@ -167,7 +171,7 @@ Xorshift64, implemented directly in asm for `RAND` (raw `Int64`) and `FRAND` (sc
 
 Tested with 4 colonies, 128-genome population, fully random genome initialisation (uniform draw from `VALID_OPCODES`, small random immediates). Result: sustained throughput in the 400,000+ generations/second range, stable across millions of generations, clean shutdown with no leaked threads or handles.
 
-Fitness reads 0.0 throughout — expected, since fitness evaluation is not yet implemented. This run validated VM correctness and hypervisor plumbing, not evolutionary behaviour.
+That run predates mutation, evolution, and fitness scoring; it validated VM correctness and hypervisor plumbing only. With all three now wired together (single colony, 128 population, sorting fitness target — see §7), a real evolutionary run surfaced a genuine fitness-function exploit within a few thousand generations: a genome that clobbers its input to a constant value scores a perfect "sorted" result without doing any actual sorting, since the original scoring only checked adjacency ordering and never verified the output was still a permutation of the input. Population fitness plateaued dead flat (best == average, bit-identical, for 25,000+ generations) once this cheat was discovered and the population converged on it — a textbook case of reward hacking in genetic programming, not a plumbing bug. Fixed by adding an `is_permutation` primitive, weighted above `array_sorted` in the criteria (see §7); not yet re-verified with a fresh run.
 
 ### 5.3 Memory Alignment
 
@@ -179,30 +183,38 @@ A named file mapping (`CreateFileMapping`/`MapViewOfFile`, Windows) exposes a sm
 
 ---
 
-## 6. Genome Mutation Strategy **[PLANNED]**
+## 6. Genome Mutation Strategy
 
-Not yet implemented. Agreed design direction:
+Implemented in `soma_mutate.pas`. Four operators, each independently rate-gated per call via `DEFAULT_MUTATION_PARAMS`:
 
-- **Point mutation** — replace a single instruction's opcode with another drawn from `VALID_OPCODES` (a flat 67-entry const array already defined in `soma_types.pas`).
-- **Immediate mutation** — adjust an instruction's `imm` field by small random deltas.
-- **Sub-genome copy/splice** — copy a contiguous block of instructions from one genome into another; the simplest and likely most productive operator, since it requires no structural analysis and relies entirely on the relative-jump-safe instruction format.
-- **NOP-insertion** — replace instructions with `OP_NOP` rather than shifting the genome array, preserving all relative jump offsets elsewhere in the genome.
-- **Intron-biased mutation** — a planned refinement where a single "shadow" execution pass marks which instructions were actually reached, and mutation pressure is weighted toward active instructions (~90%) over inactive ones (~10%), rather than uniform random selection across the whole genome. This directly addresses the problem of most random mutations being immediately fatal or inert.
+- **Point mutation** (`MutatePointOpcode`, rate 0.02) — replace a single instruction's opcode with another drawn from `VALID_OPCODES`.
+- **Immediate mutation** (`MutatePointImm`, rate 0.05, ±16 range) — adjust an instruction's `imm` field by a small random delta.
+- **NOP-block** (`MutateNopBlock`, rate 0.01, block size 4) — replace a contiguous block with `OP_NOP` rather than shifting the genome array, preserving all relative jump offsets elsewhere.
+- **Copy-block** (`MutateCopyBlock`, rate 0.01, block size 8) — copy a contiguous instruction block from another genome in the population.
 
-Dependency-aware mutation (constraining replacement opcodes to those with compatible stack effects) is acknowledged as valuable but deferred — higher implementation cost, lower near-term payoff than the operators above.
+`MutateGenome` applies all four per call, gated by their rates. A real concurrency bug was found and fixed here: copy-block reads live `Population` data (`source_pool`), and that read previously happened outside the hypervisor's critical section while another thread could concurrently be writing `Population[worst_idx] := offspring` — a data race on a non-atomic ~32KB struct that could hand `Execute()` a torn, internally-inconsistent instruction stream. Confirmed non-reproducible under single-threaded fuzzing, present under real concurrent load. Both reads are now inside the lock.
+
+Deferred, not yet implemented:
+- **Intron-biased mutation** — weighting mutation pressure toward instructions a shadow execution pass confirms were actually reached (~90%) over unreached ones (~10%), rather than uniform random selection.
+- **Dependency-aware mutation** (constraining replacement opcodes to those with compatible stack effects) — acknowledged as valuable, deferred as higher cost / lower near-term payoff than the operators above.
 
 ---
 
-## 7. Fitness System **[PLANNED]**
+## 7. Fitness System
 
-Decided architecture, not yet built:
+Implemented in `soma_fitness.pas`, superseding an earlier DLL/stdcall plugin design (`TFitnessFn` in `soma_types.pas`, left in place but unused and not loaded anywhere — candidate for removal).
 
-- **JSON fitness files**, not compiled DLLs. FPC's built-in `fpjson`/`jsonparser` units remove the need for any external dependency. A fitness target is data — a pipeline of named measurements (low-level VM observables through to higher-level mathematical scoring functions like matrix identity distance) plus weighted scoring rules — not code. This makes fitness targets editable without recompilation and fully transparent (you can read exactly what a genome is being scored against).
-- **Measurement primitives** are a fixed, compiled library inside the hypervisor (e.g. `istack_slice`, `matrix_multiply`, `identity_distance`, `array_sorted`, `epsilon_score`), referenced by name from JSON and composed via a small pipeline of named intermediate values (`m1`, `m2`, `m3`...).
-- Scope intentionally starts narrow — perhaps 15–20 primitives covering the initial "training wheels" targets (sorting, basic matrix operations) — with a small custom expression evaluator over named measurement variables added later only if composition alone proves insufficient.
-- **Pluggable, weighted criteria.** Multiple fitness criteria combine via configurable weights; weights may eventually be evolvable themselves, but only once a stable population of working genomes exists to evolve from — weight evolution starts disabled.
+- **JSON fitness targets, not compiled code.** A target file (e.g. `fitness_sort.json`) names a `setup` block (how to seed VM input) and a `criteria` list (named measurement primitives with weights). Loaded once at hypervisor startup via `LoadFitnessTarget`; editable and re-runnable without recompiling.
+- **Measurement primitives** are a small, fixed, compiled library referenced by name from JSON — deliberately narrow scope for v1, no general expression evaluator, per the original scoping decision. Currently implemented:
+  - `survival` — the original crude proxy (reward for reaching a high `ip` before halting cleanly, plus stack activity), factored out so it can be combined with real benchmarks as one weighted criterion rather than being the whole signal.
+  - `array_sorted` — fraction of adjacent pairs in bounds ascending order. Partial-credit by design so mutation has a gradient rather than a pass/fail cliff.
+  - `is_permutation` — checks the scored region is still a rearrangement of the *original* seeded input, not just any monotonic sequence. Added after a live run showed `array_sorted` alone is gameable: a genome that overwrites the array with a constant value scores a perfect 1.0 without sorting anything (see §5.2). Weighted above `array_sorted` in `fitness_sort.json` and required to be a near-exact permutation match (>0.99) for the `passed` gate.
+- **First real target**: `sort_integers` v1 — seeds `input_count` (default 8) integers in `[input_min, input_max]` onto the integer stack, scores `is_permutation` (weight 2.0), `array_sorted` (weight 1.0), and `survival` (weight 0.2). This is the first stage of the training-wheels progression below.
+- **Wiring**: `HypervisorInit` loads the target once; `ColonyThreadProc` seeds input via `SeedFitnessInput` before each `Execute`, snapshots the pre-execution input, and scores post-execution state via `EvaluateFitnessTarget` — replacing the old flat `EvaluateFitness` proxy entirely.
 
-Training-wheels progression agreed: sorting → matrix algebra → composition of the two → open-ended targets, with each stage providing ground-truth-verifiable fitness and progressively richer Layer 1 codon material.
+Training-wheels progression, as originally planned: sorting → matrix algebra → composition of the two → open-ended targets, each stage ground-truth-verifiable with progressively richer Layer 1 codon material. Only sorting exists so far.
+
+**Open follow-up**: the permutation-cheat discovery is a live example of the general reward-hacking risk in this architecture — any new primitive should be checked against "what's the cheapest way for random mutation to satisfy this metric without doing the intended thing" before being trusted as a sole criterion.
 
 ---
 
@@ -250,7 +262,9 @@ The genuinely interesting long-term payoff: once genomes can be compiled to nati
 | 6 | Weight evolution for fitness criteria — when to enable | Deferred until a stable population of working genomes exists |
 | 7 | Dependency-aware (stack-effect-constrained) mutation | Deferred — sub-genome copy and intron-biasing prioritised first |
 | 8 | GENOME_SIZE = 4096 instructions — may need revisiting once real genomes are evolved and their typical length is observed | Open, low urgency |
+| 9 | Old `TFitnessFn` DLL/stdcall plugin type in `soma_types.pas` — unused now that JSON fitness targets are the real implementation | Open — candidate for removal |
+| 10 | Sorting fitness run not yet re-verified after the `is_permutation` fix — need a fresh multi-thousand-generation run to confirm real sorting behaviour emerges rather than a new cheat | Open |
 
 ---
 
-*Status document reflects the FreePascal implementation as of the current session. Supersedes the v0.1–v0.4 Rust/graph-based specification, which is preserved in project history for reference but no longer describes the active architecture.*
+*Status document reflects the FreePascal implementation as of the current session, including the first working fitness pipeline and the permutation-cheat fix. Supersedes the v0.1–v0.4 Rust/graph-based specification, which is preserved in project history for reference but no longer describes the active architecture.*

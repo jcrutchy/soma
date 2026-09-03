@@ -8,44 +8,56 @@
       <Unit>
         <Filename Value="soma.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="32" Y="9"/>
-        <UsageCount Value="31"/>
+        <CursorPos X="52" Y="14"/>
+        <UsageCount Value="34"/>
         <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="soma_core.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <CursorPos X="21" Y="1086"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="33"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="soma_types.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="31"/>
-        <CursorPos X="49" Y="43"/>
-        <UsageCount Value="28"/>
+        <TopLine Value="310"/>
+        <CursorPos X="5" Y="343"/>
+        <UsageCount Value="31"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="soma_hypervisor.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="433"/>
-        <CursorPos Y="466"/>
-        <UsageCount Value="27"/>
+        <TopLine Value="434"/>
+        <CursorPos X="28" Y="447"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="soma_mutate.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="70"/>
-        <CursorPos X="67" Y="100"/>
-        <UsageCount Value="21"/>
+        <TopLine Value="142"/>
+        <CursorPos X="6" Y="161"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="soma_fitness.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="40" Y="17"/>
+        <UsageCount Value="24"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="soma_main.pas"/>
@@ -74,19 +86,8 @@
         <UsageCount Value="10"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
-      <Unit>
-        <Filename Value="soma_fitness.pas"/>
-        <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="125"/>
-        <CursorPos X="55" Y="134"/>
-        <UsageCount Value="21"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit>
     </Units>
-    <JumpHistory HistoryIndex="3">
+    <JumpHistory HistoryIndex="5">
       <Position>
         <Filename Value="soma.lpr"/>
         <Caret Line="45" Column="8" TopLine="34"/>
@@ -102,6 +103,14 @@
       <Position>
         <Filename Value="soma_hypervisor.pas"/>
         <Caret Line="466" TopLine="433"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_mutate.pas"/>
+        <Caret Line="77" Column="32" TopLine="70"/>
+      </Position>
+      <Position>
+        <Filename Value="soma_types.pas"/>
+        <Caret Line="204" Column="24" TopLine="187"/>
       </Position>
     </JumpHistory>
     <RunParams>

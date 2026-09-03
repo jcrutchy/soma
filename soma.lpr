@@ -5,7 +5,7 @@ program soma;
 uses
   soma_types,
   soma_core,
-  soma_hypervisor, soma_mutate, soma_fitness;
+  soma_hypervisor, soma_mutate;
 
 var
   StateSize: Integer;
@@ -60,7 +60,7 @@ begin
   WriteLn('All checks passed.');
   WriteLn;
 
-  HypervisorInit(1);  // start with 4 colonies
+  HypervisorInit(4);  // 4 colonies
   HypervisorRun;      // blocks until Enter pressed
   HypervisorStop;
 
