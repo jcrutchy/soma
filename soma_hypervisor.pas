@@ -288,6 +288,20 @@ begin
     col^.fitness      := EvaluateFitness(state);
     col^.generation    := Generation;
 
+    // TEMP DEBUG -- remove once fitness pipeline is verified.
+    if Generation < 5 then
+    begin
+      EnterCriticalSection(HyperCS);
+      Write('  [dbg gen=', Generation, '] input_count=', FitnessTarget.input_count,
+            ' istack[0..3]=', state^.istack[0], ',', state^.istack[1], ',',
+            state^.istack[2], ',', state^.istack[3],
+            ' isp=', state^.isp, ' ip=', state^.ip,
+            ' halt_reason=', Ord(state^.halt_reason),
+            ' fitness=', col^.fitness:0:4);
+      WriteLn;
+      LeaveCriticalSection(HyperCS);
+    end;
+
     // --- replace worst-in-population if offspring is fitter ---
     EnterCriticalSection(HyperCS);
     worst_idx := FindWorstIdx;
@@ -463,4 +477,3 @@ initialization
   BestGenomeIdx  := 0;
 
 end.
-
